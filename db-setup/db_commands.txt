@@ -1,2 +1,2 @@
 create user table:
-    Create table usr (uid SERIAL not null PRIMARY KEY, username varchar not null,email varchar, chess_elo int, password varchar not null, admin BOOLEAN NOT NULL, unique(username));
+    Create table usr (uid SERIAL not null PRIMARY KEY, username varchar(18) not null,email varchar, chess_elo int, password varchar(30) not null, admin BOOLEAN NOT NULL, unique(username));
