@@ -1,0 +1,16 @@
+body{
+	max-width: 1000px;
+	margin: auto;
+}
+#catalogContainer{
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+}
+.threadPreview{
+	margin-bottom: 3px;
+	border: 2px black solid;
+}
+.posts{
+	border: 2px black solid;
+}
