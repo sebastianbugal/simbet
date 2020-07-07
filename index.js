@@ -1,17 +1,19 @@
 const express = require('express')
 const path = require('path')
 const session = require('express-session')
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 100
 const { Pool } = require('pg');
 const db = new Pool({
-	connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432/splat'
+	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
+	connectionString: 'postgres://postgres:root@localhost:5432'
 })
+
 var bodyParser = require('body-parser');
 
-const { Pool } = require('pg');
-userDB = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
+// const { Pool } = require('pg');
+// userDB = new Pool({
+//   connectionString: process.env.DATABASE_URL
+// });
 
 const app = express();
 
@@ -83,8 +85,8 @@ app.use(session ({
   }))
 
 app.post('/loginForm', (req, res) => {
-    var query = `SELECT * FROM usr WHERE username = '${req.body.username}' AND password = '${req.body.password}'`;
-    userDB.query(query, (err,result) => {
+    var query = `SELECT * FROM users WHERE username = '${req.body.username}' AND password = '${req.body.password}'`;
+    db.query(query, (err,result) => {
       if(result.rowCount > 0) {
         req.session.loggedin = true;
         req.session.username = req.body.username;
@@ -99,7 +101,7 @@ app.post('/loginForm', (req, res) => {
 
 //If email is not provided I just put an empty string into database. Set the chess elo default to 1000.
 app.post('/registerForm', (req, res) => {
-    userDB.query(`SELECT username from usr WHERE username = '${req.body.username}'`, (err, result) => {
+    db.query(`SELECT username from users WHERE username = '${req.body.username}'`, (err, result) => {
       if (result.rowCount > 0) {
         console.log("gottem");
         return res.render('pages/usernameTaken');
@@ -109,9 +111,9 @@ app.post('/registerForm', (req, res) => {
         } else {
           var email = '';
         }
-        var query = `INSERT into usr (uid, username, email, chess_elo, password, admin) VALUES(DEFAULT, '${req.body.username}', '${email}',
+		var query = `INSERT into users (user_id, username, email, chess_elo, password, admin) VALUES(DEFAULT, '${req.body.username}', '${email}',
           '1000', '${req.body.password}', 'false')`;
-        userDB.query(query, (err,result) => {
+        db.query(query, (err,result) => {
           if(result) {
             console.log("Successful registration.");
             res.redirect('/login');
