@@ -69,12 +69,14 @@ app.get('/thread/:id', (req,res)=>{
 
 app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
 	let data = {};
-	let pThreadId = req.params.pThreadId;
-	let pUsername = req.params.pUsername;
-	let pText = req.params.pText;
+	let pThreadId = req.body.pThreadId;
+	let pUsername = req.body.pUsername;
+	let pText = req.body.pText;
 	const query = `INSERT INTO Posts(p_thread_id, p_username, p_text) VALUES(${pThreadId}, '${pUsername}', '${pText}')`;
+	console.log(query);
 	db.query(query, (error, result) => {
 		if(error){ res.send(error); return; }
+		res.redirect('/thread/'+pThreadId);
 	});
 });
 
