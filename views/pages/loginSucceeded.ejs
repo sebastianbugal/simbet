@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Your login has failed</title>
+  </head>
+  <body>
+    <div class="loginSucceed">
+      <% rows.forEach(function(r) { %>
+        <h2>You have successfully logged in to your account <% r.username %> Click <a href="/"> this link </a> to move to our home page. </h2>
+      <% }); %>
+    </div>
+  </body>
+</html>
