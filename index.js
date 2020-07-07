@@ -5,7 +5,7 @@ const PORT = process.env.PORT || 100
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: 'postgres://postgres:root@localhost:5432'
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost:5432'
 })
 
 var bodyParser = require('body-parser');
