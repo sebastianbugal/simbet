@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Splat - Catalog</title>
+<link rel="stylesheet" type="text/css" href="stylesheets/invariant.css">
+<link rel="stylesheet" type="text/css" href="stylesheets/catalog.css">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+</head>
+
+<body>
+	<div id="header">
+		<img src="/banner.png"></img>
+		<hr>
+		[<a id="newThreadBtn">Start a New Thread</a>]
+		<div id="newThreadSection" style="display:none">
+			<form id="postForm" action="/add-thread" method="post">
+				<table id="postTable">
+					<tr>
+						<td>Username(placeholder)</td>
+						<td><input name="pUsername" maxlength="18"></input></td>
+					</tr>
+					<tr>
+						<td>Subject</td>
+						<td><input name="tSubject" maxlength="120" type="text"></input><input value="Post" type="submit"></td>
+					</tr>
+					<tr>
+						<td>Comment</td><td><textarea name="pText" maxlength="1500" rows="6" cols="32"></textarea></td>
+					</tr>
+					<tr>
+						<td>Verification</td>
+						<td>captcha api placeholder</td>
+					</tr>
+					<!--
+					<tr><td>File</td><td><input type="file" id="file"></td><td>[<input type="checkbox" name="spoiler">Spoiler?]</td></tr>
+					-->
+				</table>
+			</form>
+		</div>
+
+		<table id="updates">
+		<hr>
+		</table>
+
+		<span>
+			[<a>Hide</a>]
+			[<a>Show All</a>]
+		</span>
+		<hr>
+		
+		<div id="selectBar">
+			[<a>Return</a>]
+			[<a>Archive</a>]
+			[<a>Bottom</a>]
+			[<a>Refresh</a>]
+			<span class = "spacer"></span>
+			Sort By: 
+				<select id="sortOrder">
+					<option value="replyCount">Reply Count</option>
+					<option value="bumpOrder">Bump Order</option>
+					<option value="creationDate">Creation Date</option>
+				</select>
+			Image Size:
+				<select id="imageSize">
+					<option value="small">Small</option>
+					<option value="large">Large</option>
+				</select>
+			[<a>Filters</a>]
+			<input type="text" placeholder="Search..."></input>
+		</div>		
+	</div>
+	<hr>
+	
+	<div id="catalogContainer">
+	<%rows.forEach((r) => {%>	
+		<a href="/thread/<%=r.p_post_id%>">
+			<div class="threadPreview">
+				<b><%=r.t_subject%></b>: 
+				<%=r.p_text%>
+				<span style="float:right">
+					by: <b><%=r.p_username%></b>
+					<b>R:</b><%=r.t_post_num%>
+					<b>U:</b><%=r.t_user_num%>
+				</span>
+			</div>
+		</a>
+	<%});%>
+	</div>
+	
+	<div id="footer">
+		<hr>
+		[<a>Return</a>]
+		[<a>Archive</a>]
+		[<a>Top</a>]
+		[<a>Refresh</a>]
+	</div>
+	<hr>
+	Style:
+		<select id="style">
+		</select>
+	<br>
+	<span>All trademarks and copyrights on this page are owned by their respective parties. Images uploaded are the responsibility of the Poster. Comments are owned by the Poster.</span>
+	<br>
+	<a href="/about">About</a> -
+	<a href="/contact">Contact</a>
+</body>
+
+<script>
+$("#newThreadBtn").click(()=>{
+	if($("#newThreadSection").css('display') == 'none')
+		$("#newThreadSection").css('display', 'block');
+	else
+		$("#newThreadSection").css('display', 'none');
+	console.log("cool");
+});
+
+</script>
+</html>

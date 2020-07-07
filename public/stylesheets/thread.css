@@ -1,0 +1,11 @@
+#op{
+	border: 4px black solid;
+}
+.post{
+	border: 2px black solid;
+}
+#newPostsection{
+	position: absolute;
+	border: 2px solid black;
+	background-color: grey;
+}
