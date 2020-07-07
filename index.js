@@ -8,6 +8,10 @@ const db = new Pool({
 })
 var bodyParser = require('body-parser');
 
+const userDB = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
+
 const app = express();
 
 app.use(express.json())
