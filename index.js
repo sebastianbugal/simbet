@@ -8,8 +8,7 @@ const db = new Pool({
 })
 var bodyParser = require('body-parser');
 
-const { Pool } = require('pg');
-userDB = new Pool({
+const userDB = new Pool({
   connectionString: process.env.DATABASE_URL
 });
 
