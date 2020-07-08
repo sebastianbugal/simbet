@@ -1,7 +1,7 @@
 const express = require('express')
 const path = require('path')
 const session = require('express-session')
-const PORT = process.env.PORT || 1012
+const PORT = process.env.PORT || 1013
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
@@ -82,12 +82,6 @@ app.get('/thread/:id', (req,res)=>{
 		res.render('pages/thread.ejs', data);
 	});
 });
-
-app.get('/log-out', (req,res)=>{
-  req.session.destroy();
-  res.redirect('/');
-})
-
 app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
 	let data = {};
 	let pThreadId = req.body.pThreadId;
@@ -120,7 +114,6 @@ app.post('/loginForm', (req, res) => {
 app.post('/registerForm', (req, res) => {
     db.query(`SELECT username from users WHERE username = '${req.body.username}'`, (err, result) => {
       if (result.rowCount > 0) {
-        console.log("gottem");
         return res.render('pages/usernameTaken');
       } else {
         if(req.body.email){
@@ -144,5 +137,16 @@ app.post('/registerForm', (req, res) => {
       }
     })
 })
+
+app.get('/logout',function(req,res){
+    req.session.destroy((err) => {
+        if(err){
+            console.log("Error has occured");
+        } else {
+            res.redirect('/login');
+        }
+    });
+
+});
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
