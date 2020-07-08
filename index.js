@@ -26,7 +26,26 @@ app.set('view engine', 'ejs')
 
 app.get('/', (req, res) => res.render('pages/login'))
 app.get('/login', (req, res) => res.render('pages/login'))
-app.get('/admin', (req, res) => res.render('pages/adminDashboard', {'results': -1}))
+app.get('/admin', (req, res) => {
+  // check for admin rights
+  if(req.session.loggedin){
+    db.query(`SELECT admin FROM Users WHERE username='${req.session.username}'`, (err, result) => {
+      console.log(result.rows[0]['admin']);
+      if(err) {
+        return res.send(error);
+      }
+      else if(result.rows[0]['admin'] == false) {
+        res.send("Access Denied");
+      }
+      else {
+        res.render('pages/adminDashboard', {'results': -1})
+      }
+    })
+  }
+  else{
+    return res.redirect('login');
+  }
+})
 
 // catalog
 var refresh_catalog = (req, res) => {
