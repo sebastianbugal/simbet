@@ -1,16 +1,11 @@
 const express = require('express')
 const path = require('path')
 const session = require('express-session')
-const PORT = process.env.PORT || 1010
+const PORT = process.env.PORT || 1012
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	//connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost:5432'
-	user: 'postgres',
-  host: 'localhost',
-  database: 'splat',
-  password: 'power',
-  port: 5432,
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost:5432'
 })
 
 var bodyParser = require('body-parser');
@@ -87,6 +82,11 @@ app.get('/thread/:id', (req,res)=>{
 		res.render('pages/thread.ejs', data);
 	});
 });
+
+app.get('/log-out', (req,res)=>{
+  req.session.destroy();
+  res.redirect('/');
+})
 
 app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
 	let data = {};
