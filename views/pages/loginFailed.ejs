@@ -3,10 +3,14 @@
   <head>
     <meta charset="utf-8">
     <title>Your login has failed</title>
+    <link rel="stylesheet" href="./stylesheets/loginPages.css">
   </head>
   <body>
-    <div class="loginFailed">
-      <h2>Your username or password is incorrect. Click <a href="/login"> this link </a> to return to the login page.</h2>
+    <div class="loginNotice">
+        <h2>Your username or password is incorrect, please try again.</h2>
+        <form class="" action="/login" method="get">
+          <input class="submitButtons" type="submit" name="loginRedirect" value="Go back">
+        </form>
     </div>
   </body>
 </html>
