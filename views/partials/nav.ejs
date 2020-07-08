@@ -1,3 +1,4 @@
+<link rel="stylesheet" type="text/css" href="/stylesheets/headerLogout.css" />
 <nav class="navbar navbar-default navbar-static-top navbar-inverse">
   <div class="container">
     <ul class="nav navbar-nav">
@@ -7,10 +8,9 @@
       <li><a href="catalog"> Forums</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
-
-      <li class="navbar-right">
-        <a><span class="glyphicon glyphicon-log-out"></span>  Log Out</a>
-      </li>
+      <form class="navbar-right" action="/logout" method="get">
+        <input class="toolbarButtons" type="submit" name="logout" value="Log Out">
+      </form>
     </ul>
   </div>
 </nav>

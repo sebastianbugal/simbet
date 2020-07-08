@@ -120,7 +120,6 @@ app.post('/loginForm', (req, res) => {
 app.post('/registerForm', (req, res) => {
     db.query(`SELECT username from users WHERE username = '${req.body.username}'`, (err, result) => {
       if (result.rowCount > 0) {
-        console.log("gottem");
         return res.render('pages/usernameTaken');
       } else {
         if(req.body.email){
@@ -144,5 +143,16 @@ app.post('/registerForm', (req, res) => {
       }
     })
 })
+
+app.get('/logout',function(req,res){
+    req.session.destroy((err) => {
+        if(err){
+            console.log("Error has occured");
+        } else {
+            res.redirect('/login');
+        }
+    });
+
+});
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
