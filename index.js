@@ -1,7 +1,7 @@
 const express = require('express')
 const path = require('path')
 const session = require('express-session')
-const PORT = process.env.PORT || 1013
+const PORT = process.env.PORT || 1026
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
@@ -42,6 +42,17 @@ var refresh_catalog = (req, res) => {
 }
 app.all('/catalog', bodyParser.urlencoded({extended:false}), refresh_catalog);
 
+var refresh_catalog_personal = (req, res) => {
+	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1 ORDER BY p_post_id DESC`;
+	db.query(threadQuery, (error, result) => {
+		if(error){ res.send(error); return; }
+		let data = {'rows':result.rows};
+		res.render('pages/userView', data);
+	});
+}
+
+app.all('/userView', bodyParser.urlencoded({extended:false}), refresh_catalog_personal);
+
 app.get('/userView', (req,res) =>{
   console.log(req.session.loggedin)
   if(req.session.loggedin==true){
@@ -52,13 +63,45 @@ app.get('/userView', (req,res) =>{
     res.render('pages/noAccess')
   }
   })
+app.get('/user_add', (req,res)=>{
+  res.render('pages/search')
+})
+
+app.post('/add_user', (req,res)=>{
+  var searchVal=req.body.searchVal;
+  query=`select username from users where username='${searchVal}'`
+  db.query(query, (err,result) => {
+    console.log(result)
+    if(result.rowCount>=1){
+      update=`UPDATE users SET following=array_append(following, '${searchVal}') where username='${req.session.username}' AND NOT ('${searchVal}'=any(following))`;
+      db.query(update,(err,result)=>{
+        if(err){
+          console.log(err)
+          res.redirect('/userView')
+        }
+        else{
+          console.log(result)
+          res.redirect('/userView')
+        }
+      });
+    }
+    else{
+      console.log('nothing found')
+      res.redirect('/userView')
+    }
+  })
+})
+
+app.post('/feed', (req,res)=>{
+
+});
 
 app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
 	let data = {};
 	// first, fetch the values needed for the thread table
 	let tSubject = req.body.tSubject;
 	if(!tSubject){tSubject = ""};
-	let pUsername = req.body.pUsername;
+  let pUsername = req.session.username;
 	let pText = req.body.pText;
 	if(!pText)
 		res.send("empty post");
@@ -85,7 +128,8 @@ app.get('/thread/:id', (req,res)=>{
 app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
 	let data = {};
 	let pThreadId = req.body.pThreadId;
-	let pUsername = req.body.pUsername;
+  let pUsername = req.session.username;
+  console.log(pUsername)
 	let pText = req.body.pText;
 	const query = `INSERT INTO Posts(p_thread_id, p_username, p_text) VALUES(${pThreadId}, '${pUsername}', '${pText}')`;
 	console.log(query);
@@ -94,6 +138,7 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
 		res.redirect('/thread/'+pThreadId);
 	});
 });
+
 app.post('/loginForm', (req, res) => {
     var query = `SELECT * FROM users WHERE username = '${req.body.username}' AND password = '${req.body.password}'`;
     db.query(query, (err,result) => {
@@ -109,6 +154,11 @@ app.post('/loginForm', (req, res) => {
       res.end();
     })
   })
+
+app.post('/back-forum', (req,res)=>{
+  console.log('redirect to catalog')
+  res.redirect('/catalog')
+})
 
 //If email is not provided I just put an empty string into database. Set the chess elo default to 1000.
 app.post('/registerForm', (req, res) => {
