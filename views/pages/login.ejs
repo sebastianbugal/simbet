@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
+  
   <head>
-    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/login.css" />    <meta charset="utf-8">
     <title>Login or Register to Splatt</title>
   </head>
   <body>
-    <form class="" action="/loginForm" method="post">
+    <form class="container align-middle a" action="/loginForm" method="post">
       <div class="loginForm">
-        <input type="text" placeholder= "Enter your username" name="username" required>
-        <input type="password" placeholder= "Enter your password" name="password" required>
+        <input type="text" placeholder= "Enter your username" name="username" required><br/>
+        <input type="password" placeholder= "Enter your password" name="password" required><br/>
         <input type="submit" name="submitLogin" value="Login">
       </div>
     </form>
 <br>
-    <form class="" action="/registerForm" method="post">
+    <form class="container align-middle a" action="/registerForm" method="post">
       <div class="registerForm">
-        <input type="text" placeholder= "Select a username" name="username" required>
-        <input type="password" placeholder= "Select a password" name="password" required>
-        <input type="text" placeholder= "Enter your email (optional)" name="email">
+        <input type="text" placeholder= "Select a username" name="username" required><br/>
+        <input type="password" placeholder= "Select a password" name="password" required><br/>
+        <input type="text" placeholder= "Enter your email (optional)" name="email"><br/>
         <input type="submit" name="submitRegister" value="Register">
       </div>
     </form>

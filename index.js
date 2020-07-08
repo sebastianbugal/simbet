@@ -1,7 +1,7 @@
 const express = require('express')
 const path = require('path')
 const session = require('express-session')
-const PORT = process.env.PORT || 100
+const PORT = process.env.PORT || 1010
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
@@ -17,13 +17,18 @@ var bodyParser = require('body-parser');
 
 const app = express();
 
+app.use(session ({
+  secret: 'splatsplatsplat',
+  resave: false,
+  saveUninitialized: false
+}))
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use(express.static(path.join(__dirname, 'public')))
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
-app.get('/', (req, res) => res.render('pages/index'))
+app.get('/', (req, res) => res.render('pages/login'))
 app.get('/login', (req, res) => res.render('pages/login'))
 
 // catalog
@@ -36,6 +41,17 @@ var refresh_catalog = (req, res) => {
 	});
 }
 app.all('/catalog', bodyParser.urlencoded({extended:false}), refresh_catalog);
+
+app.get('/userView', (req,res) =>{
+  console.log(req.session.loggedin)
+  if(req.session.loggedin==true){
+    console.log('logged in')
+    var results = {'username': req.session.username};
+    res.render('pages/userView',results)}
+  else{
+    res.render('pages/noAccess')
+  }
+  })
 
 app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
 	let data = {};
@@ -79,21 +95,15 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
 		res.redirect('/thread/'+pThreadId);
 	});
 });
-
-app.use(session ({
-    secret: 'splatsplatsplat',
-    resave: false,
-    saveUninitialized: false
-  }))
-
 app.post('/loginForm', (req, res) => {
     var query = `SELECT * FROM users WHERE username = '${req.body.username}' AND password = '${req.body.password}'`;
     db.query(query, (err,result) => {
       if(result.rowCount > 0) {
         req.session.loggedin = true;
         req.session.username = req.body.username;
-        var results = {'rows': result.rows};
-        res.render('pages/loginSucceeded', results);
+        var results = {'username': req.session.username};
+        console.log(results)
+        res.redirect('userView');
       } else {
         return res.render('pages/loginFailed');
       }
