@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Dashboard</title>
+<link rel="stylesheet" type="text/css" href="stylesheets/admin_dash.css">
+
+</head>
+
+<body>
+    <div id="header">
+        <button>Actions</button>
+        <button>Messages</button>
+    </div>
+
+    </div>
+    <div class="actions">
+        <h1 id="title">Admin Dashboard</h1>
+        <form action="/deletePost" method="post">
+            Delete post:
+            <input type="number" name="pid" placeholder="post id"> 
+            <input type="submit" value="Delete Post">
+        </form>
+        <form action="/deletePost" method="post">
+            Delete Thread:
+            <input type="number" name="pid" placeholder="thread id">
+            <input type="submit" value="Delete Thread"> <br>
+        </form>
+        <form action="/lockThread" method="post">
+            Lock Thread:
+            <input type="number" name="pid" placeholder="thread id">
+            <input type="submit" value="Lock Thread"> <br>
+        </form>
+        <form action="/muteUser" method="post">
+            Mute User:
+            <input type="number" name="uid" placeholder="user id">
+            <input type="submit" value="Mute User"> <br>
+        <form action="/banUser" method="post">
+            Ban User:
+            <input type="number" name="uid" placeholder="user id">
+            <input type="submit" value="Ban User"> <br>
+        </form>
+        <form action="/deleteUser" method="post">
+            Delete User:
+            <input type="number" name="uid" placeholder="user id">
+            <input type="submit" value="Delete User"> <br>
+        </form>
+    </div>
+</body>
+
+<!-- fix this -->
+<script type="text/javascript">
+    var results = <%= results%>;
+    if(results == 0) {alert("Id not found")};
+    if(results > 0) {alert("Success!")};
+    if(results == -2) {alert("Invalid input")}
+</script>
+
+</html>

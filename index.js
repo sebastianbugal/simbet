@@ -5,15 +5,11 @@ const PORT = process.env.PORT || 100
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost:5432'
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:School276@localhost/splat'
 })
 
 var bodyParser = require('body-parser');
 
-// const { Pool } = require('pg');
-// userDB = new Pool({
-//   connectionString: process.env.DATABASE_URL
-// });
 
 const app = express();
 
@@ -25,6 +21,7 @@ app.set('view engine', 'ejs')
 
 app.get('/', (req, res) => res.render('pages/index'))
 app.get('/login', (req, res) => res.render('pages/login'))
+app.get('/admin', (req, res) => res.render('pages/adminDashboard', {'results': -1}))
 
 // catalog
 var refresh_catalog = (req, res) => {
@@ -124,10 +121,104 @@ app.post('/registerForm', (req, res) => {
           } else {
             res.send("This register has failed idk why.");
           }
-          return;
+          return; 
         })
       }
     })
 })
 
+// admin posts
+app.post('/deletePost', (req, res)=> {
+  var pid = req.body.pid; 
+  db.query(`DELETE FROM Posts WHERE p_post_id = ${pid}`, (err, result) => {
+    if(err){
+      console.log("Invalid input")
+      var results = {'results': -2};
+      return res.render('pages/adminDashboard', results);
+    }
+    else if(result.rowCount > 0) { 
+      console.log(`Post removed: ${pid}`);
+    }
+    else { 
+      console.log(`Post not found: ${pid}`);
+    }
+    var results = {'results': result.rowCount};
+    res.render('pages/adminDashboard', results);
+  })
+})
+
+app.post('/lockThread', (req, res)=> {
+  var pid = req.body.pid; 
+  db.query(`UPDATE Posts SET t_active='f' WHERE p_post_id=${pid}`, (err, result) => {
+    if(err){
+      console.log("Invalid input");
+      var results = {'results': -2};
+      return res.render('pages/adminDashboard', results);
+    }
+    else if(result.rowCount > 0) { 
+      console.log(`Thread Locked: ${pid}`); 
+    }
+    else { 
+      console.log(`Error locking thread: ${pid}`);
+    }
+    var results = {'results': result.rowCount};
+    res.render('pages/adminDashboard', results);
+  })
+})
+
+// TODO will need to update the database if we want to implement this one
+app.post('/muteUser', (req, res)=> {
+  var uid = req.body.uid; 
+  // db.query(`UPDATE User SET muted='t' WHERE user_id=${uid}`, (err, result) => {
+  //   if(result.rowCount > 0) { 
+  //     console.log(`User muted: ${uid}`);
+  //     var results = {'results': result.rowCount};
+  //     res.render('pages/adminDashboard', results); 
+  //   }
+  //   else { 
+  //     console.log(`Error muting user: ${uid}`);
+  //     var results = {'results': result.rowCount};
+  //     res.render('pages/adminDashboard', results);
+  //   }
+  // })
+  res.send("Database needs updating");
+})
+
+//TODO will need to update the database and add a check for banned user_ids during login if we want to implement this one
+app.post('/banUser', (req, res)=> {
+  var uid = req.body.uid; 
+  // db.query(`UPDATE User SET banned='t' WHERE user_id=${uid}`, (err, result) => {
+  //   if(result.rowCount > 0) { 
+  //     console.log(`User banned: ${uid}`);
+  //     var results = {'results': result.rowCount};
+  //     res.render('pages/adminDashboard', results); 
+  //   }
+  //   else { 
+  //     console.log(`Error banning user: ${uid}`);
+  //     var results = {'results': result.rowCount};
+  //     res.render('pages/adminDashboard', results);
+  //   }
+  // })
+  res.send("Database needs updating");
+})
+
+app.post('/deleteUser', (req, res)=> {
+  var uid = req.body.uid; 
+  db.query(`DELETE FROM Users WHERE user_id=${uid}`, (err, result) => {
+    if(err){
+      console.log("invalid input");
+      var results = {'results': -2};
+      return res.render('pages/adminDashboard', results); 
+    }
+    if(result.rowCount > 0) {
+      console.log(`User deleted: ${uid}`);
+    }
+    else {
+      console.log(`Error deleting user: ${uid}`);
+    }
+    var results = {'results': result.rowCount};
+    res.render('pages/adminDashboard', results);
+  })
+})
+ 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
