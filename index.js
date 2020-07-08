@@ -43,7 +43,7 @@ var refresh_catalog = (req, res) => {
 app.all('/catalog', bodyParser.urlencoded({extended:false}), refresh_catalog);
 
 var refresh_catalog_personal = (req, res) => {
-	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1 ORDER BY p_post_id DESC`;
+	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[])) AND p_thread_id = -1 ORDER BY p_post_id DESC`;
 	db.query(threadQuery, (error, result) => {
 		if(error){ res.send(error); return; }
 		let data = {'rows':result.rows};
