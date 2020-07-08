@@ -8,7 +8,7 @@
 
 <body>
     <div id="header">
-        <button>Actions</button>
+        <button link="/admin">Actions</button>
         <button>Messages</button>
     </div>
 
@@ -44,6 +44,15 @@
             <input type="number" name="uid" placeholder="user id">
             <input type="submit" value="Delete User"> <br>
         </form>
+    </div>
+    <div>
+        <h2>Admin Creation/Deletion</h2>
+        <form action="/updateAdmin" method="post">
+            <input type="number" name="uid" placeholder="user id">
+            <input type="submit" name="update_admin" value="Add">
+            <input type="submit" name="update_admin" value="Remove">
+        </form>
+
     </div>
 </body>
 

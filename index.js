@@ -212,18 +212,43 @@ app.post('/banUser', (req, res)=> {
 })
 
 app.post('/deleteUser', (req, res)=> {
-  var uid = req.body.uid; 
+  var uid = req.body.uid;
   db.query(`DELETE FROM Users WHERE user_id=${uid}`, (err, result) => {
     if(err){
       console.log("invalid input");
       var results = {'results': -2};
       return res.render('pages/adminDashboard', results); 
     }
-    if(result.rowCount > 0) {
+    else if(result.rowCount > 0) {
       console.log(`User deleted: ${uid}`);
     }
     else {
       console.log(`Error deleting user: ${uid}`);
+    }
+    var results = {'results': result.rowCount};
+    res.render('pages/adminDashboard', results);
+  })
+})
+
+app.post('/updateAdmin', (req, res)=> {
+  var uid = req.body.uid;
+  if(req.body.update_admin == "Add"){
+    var adminRights = 't';
+  }
+  else if(req.body.update_admin == "Remove"){
+    var adminRights = 'f'; 
+  }
+  db.query(`UPDATE Users SET admin='${adminRights}' WHERE user_id=${uid}`, (err, result) => {
+    if(err){
+      console.log("Invalid input");
+      var results = {'results': -2};
+      return res.render('pages/adminDashboard', results); 
+    }
+    else if(result.rowCount > 0) {
+      console.log(`Admin rights updated: ${uid}`);
+    }
+    else {
+      console.log(`Error updating admin rights: ${uid}`);
     }
     var results = {'results': result.rowCount};
     res.render('pages/adminDashboard', results);
