@@ -1,0 +1,8 @@
+.toolbarButtons {
+  background: none;
+	border: none;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+  display: inline-block;
+}

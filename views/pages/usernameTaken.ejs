@@ -3,10 +3,14 @@
   <head>
     <meta charset="utf-8">
     <title>Registering has failed</title>
+    <link rel="stylesheet" href="./stylesheets/loginPages.css">
   </head>
   <body>
-    <div class="usernameTaken">
-      <h2>The username you have entered has already been taken. Click <a href="/login"> this link </a> to return to the registration page.</h2>
+    <div class="loginNotice">
+        <h2>This username is already taken, please choose another. </h2>
+        <form class="" action="/login" method="get">
+          <input class="submitButtons" type="submit" name="registerRedirect" value="Registration">
+        </form>
     </div>
   </body>
 </html>

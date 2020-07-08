@@ -1,8 +1,8 @@
-## SQL commands
+-- SQL commands
 CREATE DATABASE splat;
 
-### USERS
-# User table
+-- USERS
+-- User table
 CREATE TABLE Users(
 	user_id SERIAL NOT NULL PRIMARY KEY, 
 	username VARCHAR(18) NOT NULL,
@@ -13,17 +13,17 @@ CREATE TABLE Users(
 	unique(username)
 )
 
-# Insert User
+--Insert User
 INSERT INTO Users(
 	username, password
 ) VALUES(
 	'test', 'test'
 )
 
-### TEXTBOARD
-# threads are inherit from posts
-# t_post_id references posts, impossible to 
-# implement with forieng key restraint
+-- TEXTBOARD
+-- threads are inherit from posts
+-- t_post_id references posts, impossible to 
+-- implement with forieng key restraint
 
 CREATE TABLE Posts(
 	-- post data
@@ -42,21 +42,21 @@ CREATE TABLE Posts(
 	t_post_num INT DEFAULT 1
 )
 
-# table for holding replies relationship between posts
+-- table for holding replies relationship between posts
 CREATE TABLE Replies(
 	parent_id SERIAL REFERENCES posts(p_post_id),
 	reply_id SERIAL REFERENCES posts(p_post_id)
 )
 
 
-# Select for catalog
+-- Select for catalog
 SELECT *
 FROM Posts 
 WHERE p_thread_id = -1
 ORDER BY p_post_id DESC
 
 
-# post a thread function and return the new id
+-- post a thread function and return the new id
 CREATE OR REPLACE FUNCTION post_thread(
 	in_t_subject VARCHAR(120), 
 	in_p_username VARCHAR(18), 
@@ -76,15 +76,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql
 
-# post in a thread call
+-- post in a thread call
 SELECT "post_thread"('${tSubject}', '${pUsername}', '${pText}') AS id;
 
 
 
-# get newly inserted id
+-- get newly inserted id
 SELECT LAST_INSERT_ID();
 
-# post in a thread
+-- post in a thread
 INSERT INTO Posts(
 	p_thread_id, p_username, p_text)
 VALUES(
@@ -92,10 +92,10 @@ VALUES(
 )
 
 
-# see if user count needs to be updates
+-- see if user count needs to be updates
 SELECT EXISTS(SELECT 1 FROM Posts WHERE p_thread_id = '${pThreadId}');
 
-# update thread stats when a new post is posted in the thread
+-- update thread stats when a new post is posted in the thread
 UPDATE Threads
 SET 
 t_bump_time = ${tBumpTime},
@@ -105,23 +105,23 @@ WHERE
 thread_id = ${threadId};
 
 
-# select posts linked to a thread (op first) (no reply functionality yet)
+-- select posts linked to a thread (op first) (no reply functionality yet)
 SELECT * FROM Posts p WHERE p.p_thread_id = ${id} OR p.p_post_id = ${id} ORDER BY p.p_post_id;
 
 
-# delete a thread
+-- delete a thread
 DELETE FROM Threads WHERE t_thread_id = ${tThreadId}
-# delete a post 
+-- delete a post 
 DELETE FROM Posts WHERE p_post_id = ${pPostID}
 
-## load thread in catalog
-# creation time
+-- load thread in catalog
+-- creation time
 SELECT * FROM Threads ORDER BY thread_id DESC
-# bump order
+-- bump order
 SELECT * FROM Threads ORDER BY t_bump_time DESC
-# reply count
+-- reply count
 SELECT * FROM Threads ORDER BY t_post_num DESC
-# load OP
+-- load OP
 SELECT * FROM Threads WHERE thread_id = ${threadId}
-# load posts
+-- load posts
 SELECT * FROM Posts WHERE p_thread_id = ${threadId}

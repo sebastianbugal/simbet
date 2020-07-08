@@ -3,11 +3,15 @@
   <head>
     <meta charset="utf-8">
     <title>Your login has failed</title>
+    <link rel="stylesheet" href="./stylesheets/loginPages.css">
   </head>
   <body>
-    <div class="loginSucceed">
+    <div class="loginNotice">
       <% rows.forEach(function(r) { %>
-        <h2>You have successfully logged in to your account <% r.username %> Click <a href="/"> this link </a> to move to our home page. </h2>
+        <h2>You have successfully logged into the account <%= r.username %>. </h2>
+        <form class="" action="/userView" method="get">
+          <input class="submitButtons" type="submit" name="userViewRedirect" value="Go to forum">
+        </form>
       <% }); %>
     </div>
   </body>

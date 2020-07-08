@@ -1,0 +1,93 @@
+.loginRegister {
+  position: fixed;
+  width: 250px;
+  height: 400px;
+  top: 40%;
+  left: 50%;
+  margin: -150px 0 0 -150px;
+  border-radius: 12px;
+  border: 2px solid #228B22;
+}
+
+.loginNotice {
+  position: fixed;
+  width: 400px;
+  height: 160px;
+  top: 50%;
+  left: 45%;
+  margin: -150px 0 0 -150px;
+  border-radius: 12px;
+  border: 2px solid #228B22;
+  text-align: center;
+  display: inline-block;
+}
+
+.loginForm {
+  position: relative;
+  text-align: center;
+  padding: 10px;
+}
+
+.registerForm {
+  position: absolute;
+  text-align: center;
+  bottom: 10px;
+  padding: 10px;
+}
+
+.submitButtons {
+  background-color: #228B22;
+  border: none;
+  padding: 20px;
+  color: white;
+  text-align: center;
+  display: inline-block;
+  border-radius: 12px;
+  font-size: 16px;
+  margin-left: 4px 4px;
+  width: 120px;
+}
+
+.textBoxes {
+  color: black;
+  padding: 10px;
+  display: inline-block;
+  background-color: none;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-left: 4px 4px;
+  margin-bottom: 4px;
+  width: 200px;
+}
+
+ul {
+list-style-type: none;
+margin: 0;
+padding: 0;
+overflow: hidden;
+background-color: #333;
+}
+
+li {
+  float: left;
+}
+
+li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  cursor:pointer;
+}
+
+li a:hover {
+  background-color: #228B22;
+}
+
+.a{
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+}
