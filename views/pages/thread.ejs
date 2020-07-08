@@ -5,9 +5,23 @@
 <title>No. <%=op.p_post_id%></title>
 <link rel="stylesheet" type="text/css" href="stylesheets/invariant.css">
 <link rel="stylesheet" type="text/css" href="stylesheets/thread.css">
+<% include ../partials/header.ejs %>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 </head>
 <body>
+
+<hr>
+<div id="selectBar">
+	[<a href="/catalog">Catalog</a>]
+	[<a>Archive</a>]
+	[<a>Bottom</a>]
+	[<a>Update</a>]
+	<span style="float: right">
+		<b>posts: </b><%=op.t_post_num%>
+		<b>users: </b><%=op.t_user_num%>
+	</span>
+</div>
+<hr>
 
 <div id="newPostSection" style="background-color: orange; width: 200px;">
 	<form id="newPostForm" action="/add-post" method="POST">
@@ -15,13 +29,12 @@
 		<table>
 			<tr><td>this will be dragable later</td></tr>
 			<tr><td>Reply to Thread No.<%=op.p_post_id%></td></tr>
-			<tr><td><input name="pUsername" type="text" placeholder="Username Placeholder"></td></tr>
-			<tr><td><input name="pText" type="text" placeholder="Comment"></td></tr>
+			<!--<tr><td><input name="pUsername" type="text" placeholder="Username Placeholder"></td></tr>-->
+			<tr><td><textarea name="pText" form="newPostForm" placeholder="Comment"></textarea></td></tr>
 			<tr><td>recaptcha placeholder<td></tr>
 			<tr><td><input value="Post" type="submit"></td></tr>
 		</table>
 	</form>
-	<tr><td><input value="Back" type="back-forum"></td></tr>
 </div>
 
 <div class="post" id="opPost" style="border: 2px solid black">

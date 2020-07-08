@@ -76,20 +76,44 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql
 
--- post in a thread call
+-- post a thread call
 SELECT "post_thread"('${tSubject}', '${pUsername}', '${pText}') AS id;
 
-
-
--- get newly inserted id
-SELECT LAST_INSERT_ID();
-
--- post in a thread
-INSERT INTO Posts(
-	p_thread_id, p_username, p_text)
-VALUES(
-	${pThreadId}, '${pUsername}', '${pText}'
+-- post in a thread function
+CREATE OR REPLACE FUNCTION post_reply(
+	in_p_thread_id INT, 
+	in_p_username VARCHAR(18), 
+	in_p_text VARCHAR(1500)
 )
+RETURNS VOID AS $$
+DECLARE fresh_user INT := 1;
+BEGIN
+	INSERT INTO Posts(
+		p_thread_id, p_username, p_text)
+	VALUES(
+		in_p_thread_id, in_p_username, in_p_text);
+	-- sees if user has already posted
+	IF EXISTS(
+		SELECT 1 FROM posts 
+		WHERE 
+		p_username = in_p_username
+		AND (p_thread_id = in_p_thread_id OR p_post_id = in_p_thread_id)
+	)
+	THEN 
+		RAISE INFO 'not a new user';
+		fresh_user := 0;
+	END IF;
+	-- increments post number and user number
+	UPDATE posts
+	SET t_post_num = t_post_num + 1,
+	t_user_num = t_user_num + fresh_user
+	WHERE p_post_id = in_p_thread_id;
+END;
+$$ LANGUAGE plpgsql
+
+-- reply to a thread function
+SELECT "post_reply"(${pThreadId}, '${pUsername}', '${pText}');
+
 
 
 -- see if user count needs to be updates

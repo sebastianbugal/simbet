@@ -18,8 +18,12 @@
 			<form id="postForm" action="/add-thread" method="post">
 				<table id="postTable">
 					<tr>
-						<td>Username(placeholder)</td>
-						<td><input name="pUsername" maxlength="18"></input></td>
+					<%if(username != ""){%>
+						<td>Username</td>
+						<td><b><%=username%></b></td>
+					<%} else{%>
+						<td>Login to post</td>
+					<%}%>
 					</tr>
 					<tr>
 						<td>Subject</td>
