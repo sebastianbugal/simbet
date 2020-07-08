@@ -13,6 +13,7 @@ CREATE TABLE Users(
 	unique(username)
 )
 
+alter table users add following text[] DEFAULT '{}'::text[];
 --Insert User
 INSERT INTO Users(
 	username, password

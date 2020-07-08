@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="stylesheet" type="text/css" href="stylesheets/catalog.css">
   <style>
   .post {
     display: inline-block;
@@ -21,13 +22,23 @@
   <% include ../partials/nav.ejs %>
  
   <div class="post-container">
-  <div class ='post'>Welcome <%=username%> </div>
+
 </div>
 <div class="post-container">
   <div class ='post'>Recent post will appear here </div>
+  <%rows.forEach((r) => {%>	
+		<a href="/thread/<%=r.p_post_id%>">
+			<div class="threadPreview">
+				<b><%=r.t_subject%></b>: 
+				<%=r.p_text%>
+				<span style="float:right">
+					by: <b><%=r.p_username%></b>
+					<b>R:</b><%=r.t_post_num%>
+					<b>U:</b><%=r.t_user_num%>
+				</span>
+			</div>
+		</a>
+	<%});%>
   </div>
-
-
-
 </body>
 </html>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include ../partials/header.ejs %>
+</head>
+
+<body>
+
+  <% include ../partials/nav.ejs %>
+  <form class="container align-middle a" action="/add_user" method="POST">
+    <div class="registerForm">
+      <input class="textBoxes" type="text" placeholder= "Username To Follow" name="searchVal" required><br/>
+      <input class="submitButtons" type="submit" name="searchSubmit" value="Follow User">
+    </div>
+  </form>
+
+
+</body>
+</html>
