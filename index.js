@@ -1,11 +1,11 @@
 const express = require('express')
 const path = require('path')
 const session = require('express-session')
-const PORT = process.env.PORT || 1026
+const PORT = process.env.PORT || 5000
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||'postgres://postgres:School276@localhost/splat'
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
 })
 
 var bodyParser = require('body-parser');
@@ -85,7 +85,20 @@ app.get('/userView', (req,res) =>{
   }
   })
 app.get('/user_add', (req,res)=>{
-  res.render('pages/search')
+    query=`SELECT following FROM users WHERE username='${req.session.username}'`
+    db.query(query, (err,result) => {
+      if(err){
+        console.log(err);
+        res.redirect('/')
+      }
+      else{
+        console.log(result.rows[0].following)
+        fol=result.rows[0].following
+        res.render('pages/search',fol)
+      }
+    })
+
+  
 })
 
 app.post('/add_user', (req,res)=>{
