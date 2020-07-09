@@ -5,7 +5,7 @@ const PORT = process.env.PORT || 5000
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:School276@localhost/splat'
 })
 
 var bodyParser = require('body-parser');
@@ -21,6 +21,11 @@ app.use(session ({
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use(express.static(path.join(__dirname, 'public')))
+app.use(function (req, res, next) {
+  console.log(req.session);
+  res.locals.session = req.session;
+  next();
+})
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
@@ -28,25 +33,18 @@ app.get('/', (req, res) => res.render('pages/login'))
 app.get('/login', (req, res) => res.render('pages/login'))
 app.get('/admin', (req, res) => {
   // check for admin rights
-  if(req.session.loggedin){
-    db.query(`SELECT admin FROM Users WHERE username='${req.session.username}'`, (err, result) => {
-      console.log(result.rows[0]['admin']);
-      if(err) {
-        return res.send(error);
-      }
-      else if(result.rows[0]['admin'] == false) {
-        res.send("Access Denied");
-      }
-      else {
-        res.render('pages/adminDashboard', {'results': -1})
-      }
-    })
+  if(req.session.loggedin) {
+    if(req.session.admin) {
+      res.render('pages/adminDashboard', {'results': -1})
+    }
+    else {
+      res.send("Access Denied");
+    }
   }
-  else{
+  else {
     return res.redirect('login');
   }
-})
-
+});
 // catalog
 var refresh_catalog = (req, res) => {
 	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1 ORDER BY p_post_id DESC`;
@@ -184,6 +182,7 @@ app.post('/loginForm', (req, res) => {
       if(result.rowCount > 0) {
         req.session.loggedin = true;
         req.session.username = req.body.username;
+        req.session.admin = result.rows[0]['admin'];
         var results = {'username': req.session.username};
         console.log(results)
         res.redirect('userView');
