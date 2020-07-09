@@ -23,7 +23,7 @@ app.use(express.urlencoded({extended:false}))
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(function (req, res, next) {
   console.log(req.session);
-  res.locals.session = req.session;
+  res.locals.session = req.session;   // session available in ejs
   next();
 })
 app.set('views', path.join(__dirname, 'views'))

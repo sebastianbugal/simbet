@@ -19,7 +19,11 @@
 </head>
 
 <body>
-  <% include ../partials/nav.ejs %>
+  <% if(session.admin) { %>
+    <% include ../partials/adminNav.ejs %>
+  <% } else { %>
+    <%include ../partials/nav.ejs%>
+  <%} %>
  
   <div class="post-container">
 
