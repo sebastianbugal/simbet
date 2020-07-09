@@ -133,11 +133,28 @@ thread_id = ${threadId};
 -- select posts linked to a thread (op first) (no reply functionality yet)
 SELECT * FROM Posts p WHERE p.p_thread_id = ${id} OR p.p_post_id = ${id} ORDER BY p.p_post_id;
 
+-- delete a post function (untested at the moment)
+CREATE OR REPLACE FUNCTION delete_post(
+	in_p_post_id INT
+)
+RETURNS VOID AS $$
+DECLARE found_thread_id INT;
+BEGIN
+	--get thread_id
+	SELECT p_thread_id WHERE p_post_id = in_p_post_id INTO found_thread_id;
+	-- change post number
+	UPDATE posts
+	SET t_post_num = t_post_num - 1
+	WHERE p_post_id = in_p_post_id;
+	-- remove post
+	DELETE FROM Posts WHERE p_post_id = in_p_post_id;
+END;
+$$ LANGUAGE plpgsql
 
--- delete a thread
-DELETE FROM Threads WHERE t_thread_id = ${tThreadId}
--- delete a post 
-DELETE FROM Posts WHERE p_post_id = ${pPostID}
+
+-- call the delete post function
+SELECT "delete_post"(${pPostID});
+
 
 -- load thread in catalog
 -- creation time

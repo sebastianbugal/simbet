@@ -1,1 +1,18 @@
-a { color: inherit; } 
+body{
+	background-color: #EEEEEE !important;
+}
+a{
+}
+.post{
+}
+.hiddenLink:hover{
+	color: #FF6600;
+	cursor: pointer;
+}
+.subject{
+	font-weight:bold;
+}
+.username{
+	color: #004A9B;
+	font-weight: bold;
+}

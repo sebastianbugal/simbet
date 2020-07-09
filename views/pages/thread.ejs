@@ -3,62 +3,144 @@
 <html>
 <head>
 <title>No. <%=op.p_post_id%></title>
-<link rel="stylesheet" type="text/css" href="stylesheets/invariant.css">
-<link rel="stylesheet" type="text/css" href="stylesheets/thread.css">
+<link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
+<link rel="stylesheet" type="text/css" href="/stylesheets/thread.css">
 <% include ../partials/header.ejs %>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 </head>
 <body>
-
+<% include ../partials/nav.ejs %>
 <hr>
-<div id="selectBar">
-	[<a href="/catalog">Catalog</a>]
-	[<a>Archive</a>]
-	[<a>Bottom</a>]
-	[<a>Update</a>]
-	<span style="float: right">
-		<b>posts: </b><%=op.t_post_num%>
-		<b>users: </b><%=op.t_user_num%>
-	</span>
-</div>
-<hr>
+<div id="mainContainer">
 
-<div id="newPostSection" style="background-color: orange; width: 200px;">
-	<form id="newPostForm" action="/add-post" method="POST">
-		<input name="pThreadId" type="text" value="<%=op.p_post_id%>" style="display:none">
-		<table>
-			<tr><td>this will be dragable later</td></tr>
-			<tr><td>Reply to Thread No.<%=op.p_post_id%></td></tr>
-			<!--<tr><td><input name="pUsername" type="text" placeholder="Username Placeholder"></td></tr>-->
-			<tr><td><textarea name="pText" form="newPostForm" placeholder="Comment"></textarea></td></tr>
-			<tr><td>recaptcha placeholder<td></tr>
-			<tr><td><input value="Post" type="submit"></td></tr>
-		</table>
+	<div id="newPostSection"">
+		<form id="newPostForm" action="/add-post" method="POST">
+			<input name="pThreadId" type="text" value="<%=op.p_post_id%>" style="display:none">
+			<table>
+				<tr id="newPostSectionHeader">
+					<td>
+						Reply to Thread No.<%=op.p_post_id%>
+						<button type="button" style="float:right" onclick="toggle_new_reply()">x</button>
+					</td>
+				</tr>
+				<tr>
+					<td>
+					<%if(username != ""){%>
+						Posting as: <span class="username"><%=username%></span>
+					<%} else{%>
+						<a href="/">Log in to Post</a>	
+					<%}%>	
+					</td>
+				</tr>
+				<tr><td><textarea id="userTextarea" name="pText" form="newPostForm" placeholder="Comment"></textarea></td></tr>
+				<tr><td>recaptcha placeholder<td></tr>
+				<tr><td><input style="float:right" value="Post" type="submit"></td></tr>
+			</table>
+		</form>
+		<!--<form action="/back-forum" method="POST" >
+		<tr><td><input value="Back" type="submit"></td></tr>-->
 	</form>
-	<form action="/back-forum" method="POST" >
-	<tr><td><input value="Back" type="submit"></td></tr>
-</form>
-</div>
-
-<div class="post" id="opPost" style="border: 2px solid black">
-	<b><%=op.p_username%></b> 
-	No.<%=op.p_post_id%> 
-	<%=op.p_timestamp%> 
-	<b>R: <%=op.t_post_num%></b> 
-	<b>U: <%=op.t_user_num%></b><br>
-	<%=op.p_username%>
-	<%=op.p_text%>
-</div>
-
-<%posts.slice(1).forEach((post) => {%>
-	<div class="post">
-		<%=post.p_username%>
-		No. <%=post.p_post_id%>
-		<%=post.p_timestamp%>
-		<%=post.p_text%>
 	</div>
-<%}); %>
 
+	<div id="top" class="selectBar">
+		[<a href="/catalog">Catalog</a>]
+		[<a href="#bottom">Bottom</a>]
+		[<a>Update</a>]
+		[<input type="checkbox">Auto]
+		<span style="float: right">
+			<b>posts: </b><%=op.t_post_num%>
+			<b>users: </b><%=op.t_user_num%>
+		</span>
+	</div>
+	<hr>
 
+	<div id="opPost"">
+		<span class="subject">op.t_subject</span>
+		<span class="username"><%=op.p_username%></span>
+		<%=op.p_timestamp%> 
+		<span class="hiddenLink" onclick="ready_new_reply(<%=op.p_post_id%>)">No. <%=op.p_post_id%></span><br>
+		<span class="mainText"><%=op.p_text%></span>
+	</div>
+
+	<%posts.slice(1).forEach((post) => {%>
+		<div class="postBox">
+			>>
+			<div class="post">
+				<span class="username"><%=post.p_username%></span>
+				<%=post.p_timestamp%>
+				<span class="hiddenLink" onclick="ready_new_reply(<%=post.p_post_id%>)">No. <%=post.p_post_id%></span>
+				<br>
+				<span class="mainText"><%=post.p_text%></span>
+			</div>
+		</div>
+	<%}); %>
+
+	<div>
+	</div>
+	
+	<div style="text-align: center;">
+		[<a onclick="toggle_new_reply()">Post a Reply</a>]
+	</div>
+
+	<div id="bottom" class="selectBar">
+		[<a href="/catalog">Catalog</a>]
+		[<a href="#top">Top</a>]
+		[<a>Update</a>]
+		[<input type="checkbox">Auto]
+		<span style="float: right">
+			<b>posts: </b><%=op.t_post_num%>
+			<b>users: </b><%=op.t_user_num%>
+		</span>
+	</div>
+	<hr>
+
+</div>
 </body>
+<script>
+
+function toggle_new_reply(){
+	if($("#newPostSection").css("display") == "none")
+		$("#newPostSection").css("display", "block");
+	else{
+		$("#newPostSection").css("display","none");
+		// empty contents
+		$("#userTextarea").val("");
+	}
+}
+function ready_new_reply(newReplyId){
+	if($("#newPostSection").css("display") == "none")
+		$("#newPostSection").css("display", "block");
+	//grab id for replying
+	$("#userTextarea").val($("#userTextarea").val() + ">>" + newReplyId + "\n");
+	//scroll down to added text if needed
+	$("#userTextarea").scrollTop(200000);
+}
+
+
+// makes newPostSection draggable:
+drag_element(document.getElementById("newPostSection"));
+function drag_element(elmnt) {
+	// divX/Y and mouseX/Y
+	var dX = 0, dY = 0, mX = 0, mY = 0;
+	$("#newPostSectionHeader").mousedown((e)=>{
+		mX = e.clientX;
+		mY = e.clientY;
+		document.onmouseup = ()=>{
+			// stop moving when mouse button is released:
+			document.onmouseup = null;
+			document.onmousemove = null;
+		};
+		document.onmousemove = (e)=>{
+			// calculate the new cursor position:
+			dX = mX - e.clientX;
+			dY = mY - e.clientY;
+			mX = e.clientX;
+			mY = e.clientY;
+			// set the element's new position:
+			elmnt.style.top = (elmnt.offsetTop - dY) + "px";
+			elmnt.style.left = (elmnt.offsetLeft - dX) + "px";
+		};
+	});
+}
+</script>
 </html>

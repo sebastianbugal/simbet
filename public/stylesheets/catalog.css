@@ -1,6 +1,10 @@
 body{
 	margin: auto;
 }
+#mainContainer{
+	margin:auto;
+	max-width: 1000px;
+}
 #catalogContainer{
 	display: flex;
 	flex-direction: column;

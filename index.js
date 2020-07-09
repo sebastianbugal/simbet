@@ -1,15 +1,19 @@
 const express = require('express')
 const path = require('path')
 const session = require('express-session')
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 1013
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||'postgres://postgres:School276@localhost/splat'
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost:5432'
 })
 
 var bodyParser = require('body-parser');
 
+// const { Pool } = require('pg');
+// userDB = new Pool({
+//   connectionString: process.env.DATABASE_URL
+// });
 
 const app = express();
 
@@ -21,30 +25,12 @@ app.use(session ({
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use(express.static(path.join(__dirname, 'public')))
-app.use(function (req, res, next) {
-  console.log(req.session);
-  res.locals.session = req.session;   // session available in ejs
-  next();
-})
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res) => res.render('pages/login'))
 app.get('/login', (req, res) => res.render('pages/login'))
-app.get('/admin', (req, res) => {
-  // check for admin rights
-  if(req.session.loggedin) {
-    if(req.session.admin) {
-      res.render('pages/adminDashboard', {'results': -1})
-    }
-    else {
-      res.send("Access Denied");
-    }
-  }
-  else {
-    return res.redirect('login');
-  }
-});
+
 // catalog
 var refresh_catalog = (req, res) => {
 	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1 ORDER BY p_post_id DESC`;
@@ -83,20 +69,7 @@ app.get('/userView', (req,res) =>{
   }
   })
 app.get('/user_add', (req,res)=>{
-    query=`SELECT following FROM users WHERE username='${req.session.username}'`
-    db.query(query, (err,result) => {
-      if(err){
-        console.log(err);
-        res.redirect('/')
-      }
-      else{
-        console.log(result.rows[0].following)
-        fol=result.rows[0].following
-        res.render('pages/search',fol)
-      }
-    })
-
-  
+  res.render('pages/search')
 })
 
 app.post('/add_user', (req,res)=>{
@@ -154,6 +127,9 @@ app.get('/thread/:id', (req,res)=>{
 	db.query(query, (error, result) => {
 		if(error){ res.send(error); return; }
 		data['posts'] =  result.rows;
+		data['username'] = "";
+		if(req.session.loggedin == true)
+			data['username'] = req.session.username;
 		//console.log(result.rows);
 		res.render('pages/thread.ejs', data);
 	});
@@ -182,7 +158,6 @@ app.post('/loginForm', (req, res) => {
       if(result.rowCount > 0) {
         req.session.loggedin = true;
         req.session.username = req.body.username;
-        req.session.admin = result.rows[0]['admin'];
         var results = {'username': req.session.username};
         console.log(results)
         res.redirect('userView');
@@ -220,12 +195,11 @@ app.post('/registerForm', (req, res) => {
           } else {
             res.send("This register has failed idk why.");
           }
-          return; 
+          return;
         })
       }
     })
 })
-
 // admin posts
 app.post('/deletePost', (req, res)=> {
   var pid = req.body.pid; 
@@ -344,7 +318,7 @@ app.post('/updateAdmin', (req, res)=> {
     res.render('pages/adminDashboard', results);
   })
 })
- 
+
 app.get('/logout',function(req,res){
     req.session.destroy((err) => {
         if(err){
@@ -355,5 +329,7 @@ app.get('/logout',function(req,res){
     });
 
 });
+
+
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
