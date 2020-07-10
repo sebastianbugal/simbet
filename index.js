@@ -4,7 +4,7 @@ const session = require('express-session')
 const PORT = process.env.PORT || 5000
 const { Pool } = require('pg');
 const db = new Pool({
-	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
+	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
 	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
 })
 
@@ -96,7 +96,7 @@ app.get('/user_add', (req,res)=>{
       }
     })
 
-  
+
 })
 
 app.post('/add_user', (req,res)=>{
@@ -240,7 +240,7 @@ app.post('/registerForm', (req, res) => {
           } else {
             res.send("This register has failed idk why.");
           }
-          return; 
+          return;
         })
       }
     })
@@ -248,17 +248,17 @@ app.post('/registerForm', (req, res) => {
 
 // admin posts
 app.post('/deletePost', (req, res)=> {
-  var pid = req.body.pid; 
+  var pid = req.body.pid;
   db.query(`DELETE FROM Posts WHERE p_post_id = ${pid}`, (err, result) => {
     if(err){
       console.log("Invalid input")
       var results = {'results': -2};
       return res.render('pages/adminDashboard', results);
     }
-    else if(result.rowCount > 0) { 
+    else if(result.rowCount > 0) {
       console.log(`Post removed: ${pid}`);
     }
-    else { 
+    else {
       console.log(`Post not found: ${pid}`);
     }
     var results = {'results': result.rowCount};
@@ -267,17 +267,17 @@ app.post('/deletePost', (req, res)=> {
 })
 
 app.post('/lockThread', (req, res)=> {
-  var pid = req.body.pid; 
+  var pid = req.body.pid;
   db.query(`UPDATE Posts SET t_active='f' WHERE p_post_id=${pid}`, (err, result) => {
     if(err){
       console.log("Invalid input");
       var results = {'results': -2};
       return res.render('pages/adminDashboard', results);
     }
-    else if(result.rowCount > 0) { 
-      console.log(`Thread Locked: ${pid}`); 
+    else if(result.rowCount > 0) {
+      console.log(`Thread Locked: ${pid}`);
     }
-    else { 
+    else {
       console.log(`Error locking thread: ${pid}`);
     }
     var results = {'results': result.rowCount};
@@ -287,14 +287,14 @@ app.post('/lockThread', (req, res)=> {
 
 // TODO will need to update the database if we want to implement this one
 app.post('/muteUser', (req, res)=> {
-  var uid = req.body.uid; 
+  var uid = req.body.uid;
   // db.query(`UPDATE User SET muted='t' WHERE user_id=${uid}`, (err, result) => {
-  //   if(result.rowCount > 0) { 
+  //   if(result.rowCount > 0) {
   //     console.log(`User muted: ${uid}`);
   //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results); 
+  //     res.render('pages/adminDashboard', results);
   //   }
-  //   else { 
+  //   else {
   //     console.log(`Error muting user: ${uid}`);
   //     var results = {'results': result.rowCount};
   //     res.render('pages/adminDashboard', results);
@@ -305,14 +305,14 @@ app.post('/muteUser', (req, res)=> {
 
 //TODO will need to update the database and add a check for banned user_ids during login if we want to implement this one
 app.post('/banUser', (req, res)=> {
-  var uid = req.body.uid; 
+  var uid = req.body.uid;
   // db.query(`UPDATE User SET banned='t' WHERE user_id=${uid}`, (err, result) => {
-  //   if(result.rowCount > 0) { 
+  //   if(result.rowCount > 0) {
   //     console.log(`User banned: ${uid}`);
   //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results); 
+  //     res.render('pages/adminDashboard', results);
   //   }
-  //   else { 
+  //   else {
   //     console.log(`Error banning user: ${uid}`);
   //     var results = {'results': result.rowCount};
   //     res.render('pages/adminDashboard', results);
@@ -327,7 +327,7 @@ app.post('/deleteUser', (req, res)=> {
     if(err){
       console.log("invalid input");
       var results = {'results': -2};
-      return res.render('pages/adminDashboard', results); 
+      return res.render('pages/adminDashboard', results);
     }
     else if(result.rowCount > 0) {
       console.log(`User deleted: ${uid}`);
@@ -346,13 +346,13 @@ app.post('/updateAdmin', (req, res)=> {
     var adminRights = 't';
   }
   else if(req.body.update_admin == "Remove"){
-    var adminRights = 'f'; 
+    var adminRights = 'f';
   }
   db.query(`UPDATE Users SET admin='${adminRights}' WHERE user_id=${uid}`, (err, result) => {
     if(err){
       console.log("Invalid input");
       var results = {'results': -2};
-      return res.render('pages/adminDashboard', results); 
+      return res.render('pages/adminDashboard', results);
     }
     else if(result.rowCount > 0) {
       console.log(`Admin rights updated: ${uid}`);
@@ -364,7 +364,7 @@ app.post('/updateAdmin', (req, res)=> {
     res.render('pages/adminDashboard', results);
   })
 })
- 
+
 app.get('/logout',function(req,res){
     req.session.destroy((err) => {
         if(err){

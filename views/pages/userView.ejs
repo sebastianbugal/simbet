@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>Splat- Home page</title>
   <link rel="stylesheet" type="text/css" href="stylesheets/catalog.css">
   <style>
   .post {
@@ -13,7 +14,7 @@
   body {
     background-color: lightblue;
   }
-  
+
       </style></style>
   <% include ../partials/header.ejs %>
 </head>
@@ -24,16 +25,16 @@
   <% } else { %>
     <%include ../partials/nav.ejs%>
   <%} %>
- 
+
   <div class="post-container">
 
 </div>
 <div class="post-container">
   <div class ='post'>Recent post will appear here </div>
-  <%rows.forEach((r) => {%>	
+  <%rows.forEach((r) => {%>
 		<a href="/thread/<%=r.p_post_id%>">
 			<div class="threadPreview">
-				<b><%=r.t_subject%></b>: 
+				<b><%=r.t_subject%></b>:
 				<%=r.p_text%>
 				<span style="float:right">
 					by: <b><%=r.p_username%></b>
