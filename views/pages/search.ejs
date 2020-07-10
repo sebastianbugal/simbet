@@ -2,7 +2,11 @@
 <html>
 <head>
   <% include ../partials/header.ejs %>
-  
+  <!-- <script>
+    function num(){
+
+    }
+  </script> -->
 </head>
 
 <body>
@@ -19,10 +23,13 @@
   <div class="col-sm-4">
     <h2>Followed Users:</h2><br/>
     <% fol.forEach(function(r) { %>
-      <div style='	margin-bottom: 3px;
-      border: 2px black solid;'><%=r%></div>
+      <form action="/unfollow" method="POST">
+        <div style='	margin-bottom: 3px;'><%=r%>
+        <input class="submitButtons" style="margin-left:20px;" type="submit" name="a" value="Unfollow">
+        <input type="hidden" name="unfollow" value="<%=r%>">
+      </div>
+        </form>
   <% }); %>
-    
   </div>
 </div>
 </div>

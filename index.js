@@ -1,7 +1,7 @@
 const express = require('express')
 const path = require('path')
 const session = require('express-session')
-const PORT = process.env.PORT || 2000
+const PORT = process.env.PORT || 5000
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
@@ -122,6 +122,23 @@ app.post('/add_user', (req,res)=>{
       res.redirect('/userView')
     }
   })
+})
+
+app.post('/unfollow', (req,res)=>{
+  unfollow=req.body.unfollow;
+  update=`UPDATE users SET following=array_remove(following, '${unfollow}') where username='${req.session.username}'`;
+  db.query(update, (error, result) => {
+    if(error){
+      console.log(error)
+      res.redirect('/userView');
+    }
+    else{
+      console.log(result);
+      res.redirect('/userView')
+    }
+  })
+
+  console.log(unfollow);
 })
 
 app.post('/feed', (req,res)=>{
