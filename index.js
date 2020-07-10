@@ -1,11 +1,11 @@
 const express = require('express')
 const path = require('path')
 const session = require('express-session')
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 2000
 const { Pool } = require('pg');
 const db = new Pool({
 	// connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||'postgres://postgres:School276@localhost/splat'
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
 })
 
 var bodyParser = require('body-parser');
