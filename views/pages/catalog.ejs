@@ -6,6 +6,7 @@
 <link rel="stylesheet" type="text/css" href="/stylesheets/catalog.css">
 <% include ../partials/header.ejs %>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 
 <body>
@@ -23,7 +24,7 @@
 						<td>Username</td>
 						<td><b><%=username%></b></td>
 					<%} else{%>
-						<td>Login to post</td>
+						<td><a href="/">Login to post</a></td>
 					<%}%>
 					</tr>
 					<tr>
@@ -35,7 +36,9 @@
 					</tr>
 					<tr>
 						<td>Verification</td>
-						<td>captcha api placeholder</td>
+						<%//local testing data-sitekey: 6LekFLEZAAAAALJ7jQOKGmsHaKJqDbFEARsaMQV6
+						//actual data-sitekey: 6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI%>
+						<td><div class="g-recaptcha" data-theme="light" data-sitekey="6LekFLEZAAAAALJ7jQOKGmsHaKJqDbFEARsaMQV6"></div><td>
 					</tr>
 					<!--
 					<tr><td>File</td><td><input type="file" id="file"></td><td>[<input type="checkbox" name="spoiler">Spoiler?]</td></tr>

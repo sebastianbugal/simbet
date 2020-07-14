@@ -13,16 +13,17 @@
 	padding: 6px;
 	margin-left: 6px;
 }
-.mainText{
+.postText{
 	display: block;
 	margin: 6px 0px 6px 24px;
+	white-space: pre-wrap;
 }
 .selectBar{
 	user-select: none; /* Standard */
 	cursor: default;
 }
 #newPostSection{
-	position: absolute;
+	position: fixed;
 	border: 2px solid black;
 	display: none;
 	background-color: #EEEEEE;

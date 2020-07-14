@@ -146,6 +146,10 @@ app.post('/feed', (req,res)=>{
 });
 
 app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
+  if(!req.body['g-recaptcha-response']){
+    res.send("captcha not filled, placeholder response, ajax resposne coming");
+    return;
+  }
 	if(req.session.loggedin==false){ res.render('pages/noAccess'); return; }
 	let data = {};
 	// first, fetch the values needed for the thread table
@@ -167,7 +171,7 @@ app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
 app.get('/thread/:id', (req,res)=>{
 	let data = {};
 	let id = req.params.id;
-	const query = `SELECT * FROM Posts p WHERE p.p_thread_id = ${id} OR p.p_post_id = ${id} ORDER BY p.p_post_id;`;
+	const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC`;
 	db.query(query, (error, result) => {
 		if(error){ res.send(error); return; }
 		data['posts'] =  result.rows;
@@ -179,21 +183,51 @@ app.get('/thread/:id', (req,res)=>{
 	});
 });
 app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
+  function post_query(pThreadId, pUsername, pText){
+    return new Promise(resolve => {
+      const query = `SELECT "post_reply"(${pThreadId}, '${pUsername}', '${pText}') AS id`;
+      console.log(query);
+      db.query(query, (error, result) => {
+        if(error){ res.send(error); return; }
+        console.log("THIS: " + result.rows[0].id);
+        resolve(result.rows[0].id);
+      });
+    })
+  }
+
+  async function reply_query(pThreadId, pUsername, pText){
+    let pPostId = await post_query(pThreadId, pUsername, pText);
+    const replyRegex = />>[0-9]+/g;
+    const replyingTo = pText.match(replyRegex);
+    let replyingToSet = new Set(replyingTo);
+    let replyQuery = "INSERT INTO Replies(parent_id, reply_id) VALUES($1, $2)";
+    replyingToSet.forEach((parentId) => {
+      console.log("REPLYING TO:" + parentId.slice(2) + " FROM:" + pPostId);
+      db.query(replyQuery, [parentId.slice(2), pPostId], (error, result) => {
+        //if(error){res.send(error); return;}
+      });
+    })
+  }
+
 	if(req.session.loggedin==false){ res.render('pages/noAccess'); return; }
+
+  if(!req.body['g-recaptcha-response']){
+    res.send("captcha not filled, placeholder response, ajax resposne coming");
+    return;
+  }
 	let data = {};
 	let pThreadId = req.body.pThreadId;
 	let pUsername = req.session.username;
-  console.log(pUsername)
 	let pText = req.body.pText;
 	if(!pText){
 		res.send("empty post");
+    return;
 	}
-	const query = `SELECT "post_reply"(${pThreadId}, '${pUsername}', '${pText}');`;
-	console.log(query);
-	db.query(query, (error, result) => {
-		if(error){ res.send(error); return; }
-		res.redirect('/thread/'+pThreadId);
-	});
+
+  reply_query(pThreadId, pUsername, pText);
+  // regular expression to limit consecutive line breaks to two
+  pText = pText.replace(/\n\s*\n\s*\n/g, '\n\n');
+	res.redirect('/thread/'+pThreadId);
 });
 
 app.post('/loginForm', (req, res) => {

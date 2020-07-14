@@ -86,13 +86,15 @@ CREATE OR REPLACE FUNCTION post_reply(
 	in_p_username VARCHAR(18), 
 	in_p_text VARCHAR(1500)
 )
-RETURNS VOID AS $$
+RETURNS INT AS $$
 DECLARE fresh_user INT := 1;
+DECLARE new_post_id INT := -1;
 BEGIN
 	INSERT INTO Posts(
 		p_thread_id, p_username, p_text)
 	VALUES(
 		in_p_thread_id, in_p_username, in_p_text);
+	SELECT currval(pg_get_serial_sequence('Posts', 'p_post_id')) INTO new_post_id;
 	-- sees if user has already posted
 	IF EXISTS(
 		SELECT 1 FROM posts 
@@ -109,6 +111,7 @@ BEGIN
 	SET t_post_num = t_post_num + 1,
 	t_user_num = t_user_num + fresh_user
 	WHERE p_post_id = in_p_thread_id;
+	RETURN new_post_id;
 END;
 $$ LANGUAGE plpgsql
 
@@ -156,14 +159,5 @@ $$ LANGUAGE plpgsql
 SELECT "delete_post"(${pPostID});
 
 
--- load thread in catalog
--- creation time
-SELECT * FROM Threads ORDER BY thread_id DESC
--- bump order
-SELECT * FROM Threads ORDER BY t_bump_time DESC
--- reply count
-SELECT * FROM Threads ORDER BY t_post_num DESC
--- load OP
-SELECT * FROM Threads WHERE thread_id = ${threadId}
--- load posts
-SELECT * FROM Posts WHERE p_thread_id = ${threadId}
+-- load posts for a thread
+SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} ORDER BY p.p_post_id; 
