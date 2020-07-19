@@ -1,4 +1,4 @@
-#opPost{
+.opPost{
 	border: 0px;
 	padding-left: 20px;
 	padding-bottom: 20px;
@@ -42,4 +42,25 @@
 	height: 90px;
 	overflow-y: auto;
 }
-
+.postMenuContainer{
+	position: relative;
+	display: inline-block
+}
+.postMenuBtn{
+	cursor: pointer;
+}
+.postMenu{
+	display: none;
+	position: absolute;
+	background-color: white;
+	width: 80px;
+}
+.postMenuLink{
+	cursor: pointer;
+	padding: 2px;
+	display: block;
+	text-decoration: none;
+}
+.replyPreview{
+	display:none;
+}

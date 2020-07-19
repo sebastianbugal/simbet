@@ -2,6 +2,7 @@ body{
 	background-color: #EEEEEE !important;
 }
 a{
+	text-decoration:none;
 }
 .post{
 }
@@ -11,6 +12,7 @@ a{
 }
 .subject{
 	font-weight:bold;
+	color: black;
 }
 .username{
 	color: #004A9B;

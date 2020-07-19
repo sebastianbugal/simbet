@@ -11,8 +11,11 @@ body{
 	flex-wrap: wrap;
 }
 .threadPreview{
-	margin-bottom: 3px;
-	border: 2px black solid;
+	padding: 9px;
+	color: black;
+}.threadPreview:hover{
+	background-color: white;
+	text-decoration: none;
 }
 .posts{
 	border: 2px black solid;

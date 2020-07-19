@@ -83,7 +83,7 @@
 	<%rows.forEach((r) => {%>	
 		<a href="/thread/<%=r.p_post_id%>">
 			<div class="threadPreview">
-				<b><%=r.t_subject%></b>: 
+				<b><span class="subject"><%=r.t_subject%></span></b>: 
 				<%=r.p_text%>
 				<span style="float:right">
 					by: <span class="username"><%=r.p_username%></span>

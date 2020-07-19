@@ -81,7 +81,7 @@ app.get('/userView', (req,res) =>{
   else{
     res.render('pages/noAccess')
   }
-  })
+})
 app.get('/user_add', (req,res)=>{
     query=`SELECT following FROM users WHERE username='${req.session.username}'`
     db.query(query, (err,result) => {
@@ -171,13 +171,15 @@ app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
 app.get('/thread/:id', (req,res)=>{
 	let data = {};
 	let id = req.params.id;
-	const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC`;
+	const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
 	db.query(query, (error, result) => {
 		if(error){ res.send(error); return; }
 		data['posts'] =  result.rows;
 		data['username'] = "";
-		if(req.session.loggedin == true)
+		if(req.session.loggedin == true){
 			data['username'] = req.session.username;
+      data['role'] = req.session.role;
+    }
 		//console.log(result.rows);
 		res.render('pages/thread.ejs', data);
 	});
@@ -236,7 +238,7 @@ app.post('/loginForm', (req, res) => {
       if(result.rowCount > 0) {
         req.session.loggedin = true;
         req.session.username = req.body.username;
-        req.session.admin = result.rows[0]['admin'];
+        req.session.role = result.rows[0]['role'];
         var results = {'username': req.session.username};
         console.log(results)
         res.redirect('userView');
@@ -263,8 +265,7 @@ app.post('/registerForm', (req, res) => {
         } else {
           var email = '';
         }
-		var query = `INSERT into users (user_id, username, email, chess_elo, password, admin) VALUES(DEFAULT, '${req.body.username}', '${email}',
-          '1000', '${req.body.password}', 'false')`;
+		var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
         db.query(query, (err,result) => {
           if(result) {
             console.log("Successful registration.");
@@ -321,15 +322,15 @@ app.post('/lockThread', (req, res)=> {
 
 // TODO will need to update the database if we want to implement this one
 app.post('/muteUser', (req, res)=> {
-  var uid = req.body.uid;
-  // db.query(`UPDATE User SET muted='t' WHERE user_id=${uid}`, (err, result) => {
+  var username = req.body.username;
+  // db.query(`UPDATE User SET muted='t' WHERE username=${username}`, (err, result) => {
   //   if(result.rowCount > 0) {
-  //     console.log(`User muted: ${uid}`);
+  //     console.log(`User muted: ${username}`);
   //     var results = {'results': result.rowCount};
   //     res.render('pages/adminDashboard', results);
   //   }
   //   else {
-  //     console.log(`Error muting user: ${uid}`);
+  //     console.log(`Error muting user: ${username}`);
   //     var results = {'results': result.rowCount};
   //     res.render('pages/adminDashboard', results);
   //   }
@@ -337,17 +338,17 @@ app.post('/muteUser', (req, res)=> {
   res.send("Database needs updating");
 })
 
-//TODO will need to update the database and add a check for banned user_ids during login if we want to implement this one
+//TODO will need to update the database and add a check for banned usernames during login if we want to implement this one
 app.post('/banUser', (req, res)=> {
-  var uid = req.body.uid;
-  // db.query(`UPDATE User SET banned='t' WHERE user_id=${uid}`, (err, result) => {
+  var username = req.body.username;
+  // db.query(`UPDATE User SET banned='t' WHERE username=${username}`, (err, result) => {
   //   if(result.rowCount > 0) {
-  //     console.log(`User banned: ${uid}`);
+  //     console.log(`User banned: ${username}`);
   //     var results = {'results': result.rowCount};
   //     res.render('pages/adminDashboard', results);
   //   }
   //   else {
-  //     console.log(`Error banning user: ${uid}`);
+  //     console.log(`Error banning user: ${username}`);
   //     var results = {'results': result.rowCount};
   //     res.render('pages/adminDashboard', results);
   //   }
@@ -356,18 +357,18 @@ app.post('/banUser', (req, res)=> {
 })
 
 app.post('/deleteUser', (req, res)=> {
-  var uid = req.body.uid;
-  db.query(`DELETE FROM Users WHERE user_id=${uid}`, (err, result) => {
+  var username = req.body.username;
+  db.query(`DELETE FROM Users WHERE username=${username}`, (err, result) => {
     if(err){
       console.log("invalid input");
       var results = {'results': -2};
       return res.render('pages/adminDashboard', results);
     }
     else if(result.rowCount > 0) {
-      console.log(`User deleted: ${uid}`);
+      console.log(`User deleted: ${username}`);
     }
     else {
-      console.log(`Error deleting user: ${uid}`);
+      console.log(`Error deleting user: ${username}`);
     }
     var results = {'results': result.rowCount};
     res.render('pages/adminDashboard', results);
@@ -375,24 +376,24 @@ app.post('/deleteUser', (req, res)=> {
 })
 
 app.post('/updateAdmin', (req, res)=> {
-  var uid = req.body.uid;
+  var username = req.body.username;
   if(req.body.update_admin == "Add"){
     var adminRights = 't';
   }
   else if(req.body.update_admin == "Remove"){
     var adminRights = 'f';
   }
-  db.query(`UPDATE Users SET admin='${adminRights}' WHERE user_id=${uid}`, (err, result) => {
+  db.query(`UPDATE Users SET admin='${adminRights}' WHERE username=${username}`, (err, result) => {
     if(err){
       console.log("Invalid input");
       var results = {'results': -2};
       return res.render('pages/adminDashboard', results);
     }
     else if(result.rowCount > 0) {
-      console.log(`Admin rights updated: ${uid}`);
+      console.log(`Admin rights updated: ${username}`);
     }
     else {
-      console.log(`Error updating admin rights: ${uid}`);
+      console.log(`Error updating admin rights: ${username}`);
     }
     var results = {'results': result.rowCount};
     res.render('pages/adminDashboard', results);

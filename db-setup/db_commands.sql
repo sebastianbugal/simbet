@@ -4,13 +4,13 @@ CREATE DATABASE splat;
 -- USERS
 -- User table
 CREATE TABLE Users(
-	user_id SERIAL NOT NULL PRIMARY KEY, 
-	username VARCHAR(18) NOT NULL,
+	username VARCHAR(18) PRIMARY KEY,
 	email VARCHAR, 
 	chess_elo INT DEFAULT 0, 
-	password VARCHAR(30) NOT NULL, 
-	admin BOOLEAN DEFAULT 'f',
-	unique(username)
+	checkers_elo INT DEFAULT 0,
+	password VARCHAR(30) NOT NULL,
+	role CHAR DEFAULT 'u',
+	date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 
 alter table users add following text[] DEFAULT '{}'::text[];
@@ -29,7 +29,6 @@ INSERT INTO Users(
 CREATE TABLE Posts(
 	-- post data
 	p_post_id SERIAL PRIMARY KEY,
-	p_reply_id SERIAL,
 	p_username VARCHAR(18) REFERENCES Users(username),
 	p_text VARCHAR(1500),
 	p_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
