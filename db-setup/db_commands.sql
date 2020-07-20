@@ -5,13 +5,13 @@ CREATE DATABASE splat;
 -- User table
 CREATE TABLE Users(
 	username VARCHAR(18) PRIMARY KEY,
-	email VARCHAR, 
-	chess_elo INT DEFAULT 0, 
+	email VARCHAR,
+	chess_elo INT DEFAULT 0,
 	checkers_elo INT DEFAULT 0,
 	password VARCHAR(30) NOT NULL,
 	role CHAR DEFAULT 'u',
 	date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
+);
 
 alter table users add following text[] DEFAULT '{}'::text[];
 --Insert User
@@ -19,11 +19,27 @@ INSERT INTO Users(
 	username, password
 ) VALUES(
 	'test', 'test'
-)
+);
+
+-- Table for private forums
+CREATE TABLE Forums(
+	f_name VARCHAR(18) PRIMARY KEY,
+	f_password VARCHAR(30) NOT NULL,
+	f_owner VARCHAR(18) REFERENCES Users(username)
+);
+
+-- Creating "default" forum
+INSERT INTO Forums(
+	f_name, f_password, f_owner
+) VALUES(
+	'main', 'main', 'test'
+);
+
+alter table users add accessible text[] DEFAULT '{main}'::text[];
 
 -- TEXTBOARD
 -- threads are inherit from posts
--- t_post_id references posts, impossible to 
+-- t_post_id references posts, impossible to
 -- implement with forieng key restraint
 
 CREATE TABLE Posts(
@@ -36,54 +52,55 @@ CREATE TABLE Posts(
 	p_country_code CHAR(2) DEFAULT 'AX',
 	-- thread data
 	t_subject VARCHAR(120),
+	t_forum VARCHAR(18) REFERENCES Forums(f_name) DEFAULT 'main',
 	t_pinned BOOLEAN DEFAULT 'f',
 	t_active BOOLEAN DEFAULT 't',
 	t_bump_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	t_user_num INT DEFAULT 1,
 	t_post_num INT DEFAULT 1
-)
+);
 
 -- table for holding replies relationship between posts
 CREATE TABLE Replies(
 	parent_id SERIAL REFERENCES posts(p_post_id),
 	reply_id SERIAL REFERENCES posts(p_post_id)
-)
-
+);
 
 -- Select for catalog
 SELECT *
-FROM Posts 
+FROM Posts
 WHERE p_thread_id = -1
-ORDER BY p_post_id DESC
+ORDER BY p_post_id DESC;
 
 
 -- post a thread function and return the new id
 CREATE OR REPLACE FUNCTION post_thread(
-	in_t_subject VARCHAR(120), 
-	in_p_username VARCHAR(18), 
+	in_t_subject VARCHAR(120),
+	in_t_forum VARCHAR(18),
+	in_p_username VARCHAR(18),
 	in_p_text VARCHAR(1500)
 )
 RETURNS INT AS $$
 DECLARE new_post_id INT;
 BEGIN
 	INSERT INTO Posts(
-		t_subject, p_username, p_text)
+		t_subject, t_forum, p_username, p_text)
 	VALUES(
-		in_t_subject, in_p_username, in_p_text);
+		in_t_subject, in_t_forum, in_p_username, in_p_text);
 
 	SELECT currval(pg_get_serial_sequence('Posts', 'p_post_id')) INTO new_post_id;
 
 	RETURN new_post_id;
 END;
-$$ LANGUAGE plpgsql
+$$ LANGUAGE plpgsql;
 
 -- post a thread call
-SELECT "post_thread"('${tSubject}', '${pUsername}', '${pText}') AS id;
+SELECT "post_thread"('${tSubject}', '${tForum}', '${pUsername}', '${pText}') AS id;
 
 -- post in a thread function
 CREATE OR REPLACE FUNCTION post_reply(
-	in_p_thread_id INT, 
-	in_p_username VARCHAR(18), 
+	in_p_thread_id INT,
+	in_p_username VARCHAR(18),
 	in_p_text VARCHAR(1500),
 	in_p_country_code CHAR(2)
 )
@@ -98,12 +115,12 @@ BEGIN
 	SELECT currval(pg_get_serial_sequence('Posts', 'p_post_id')) INTO new_post_id;
 	-- sees if user has already posted
 	IF EXISTS(
-		SELECT 1 FROM posts 
-		WHERE 
+		SELECT 1 FROM posts
+		WHERE
 		p_username = in_p_username
 		AND (p_thread_id = in_p_thread_id OR p_post_id = in_p_thread_id)
 	)
-	THEN 
+	THEN
 		RAISE INFO 'not a new user';
 		fresh_user := 0;
 	END IF;
@@ -114,10 +131,10 @@ BEGIN
 	WHERE p_post_id = in_p_thread_id;
 	RETURN new_post_id;
 END;
-$$ LANGUAGE plpgsql
+$$ LANGUAGE plpgsql;
 
 -- reply to a thread function
-SELECT "post_reply"(${pThreadId}, '${pUsername}', '${pText}');
+SELECT "post_reply"('${pThreadId}', '${pUsername}', '${pText}');
 
 
 
@@ -126,7 +143,7 @@ SELECT EXISTS(SELECT 1 FROM Posts WHERE p_thread_id = '${pThreadId}');
 
 -- update thread stats when a new post is posted in the thread
 UPDATE Threads
-SET 
+SET
 t_bump_time = ${tBumpTime},
 t_post_num = ${tPostNum},
 t_user_num = ${tUserNum}
@@ -153,7 +170,7 @@ BEGIN
 	-- remove post
 	DELETE FROM Posts WHERE p_post_id = in_p_post_id;
 END;
-$$ LANGUAGE plpgsql
+$$ LANGUAGE plpgsql;
 
 
 -- call the delete post function
@@ -161,4 +178,4 @@ SELECT "delete_post"(${pPostID});
 
 
 -- load posts for a thread
-SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} ORDER BY p.p_post_id; 
+SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} ORDER BY p.p_post_id;

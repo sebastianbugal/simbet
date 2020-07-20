@@ -47,8 +47,11 @@ app.get('/admin', (req, res) => {
   }
 });
 // catalog
+// Catalog will now only show posts where the user is within the accessible forum
 var refresh_catalog = (req, res) => {
-	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1 ORDER BY p_post_id DESC`;
+
+	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1
+	AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
 	db.query(threadQuery, (error, result) => {
 		if(error){ res.send(error); return; }
 		let data = {'rows':result.rows};
@@ -63,7 +66,8 @@ var refresh_catalog = (req, res) => {
 app.all('/catalog', bodyParser.urlencoded({extended:false}), refresh_catalog);
 
 var refresh_catalog_personal = (req, res) => {
-	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[])) AND p_thread_id = -1 ORDER BY p_post_id DESC`;
+	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[]))
+	AND p_thread_id = -1 AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
 	db.query(threadQuery, (error, result) => {
 		if(error){ res.send(error); return; }
 		let data = {'rows':result.rows};
@@ -146,6 +150,56 @@ app.post('/feed', (req,res)=>{
 
 });
 
+//Create forum with password. Admin users gain access to all things.
+app.post('/create_forum', (req,res)=> {
+	forumName = req.body.forumName;
+	forumPassword = req.body.forumPassword
+	owner = req.session.username;
+	db.query(`SELECT f_name from forums WHERE f_name = '${forumName}'`, (err, result) => {
+		if (result.rowCount > 0) {
+			return res.send(`Forum name already taken, contact forum owner '${owner}' to be allowed access.`);
+		} else {
+			const query = `INSERT INTO Forums(f_name, f_password, f_owner) VALUES ('${forumName}', '${forumPassword}', '${owner}')`;
+			db.query(query, (err, result) => {
+				if(err){res.send(err); return; }
+				update=`UPDATE users SET accessible=array_append(accessible, '${req.body.forumName}') where (username='${req.session.username}' OR role = 'a') AND NOT ('${req.body.forumName}'=any(accessible))`;
+	      db.query(update,(err,result)=>{
+					console.log(result)
+	        if(err){
+	          res.send(err);
+	        }
+	        else{
+	          res.redirect('/catalog');
+	        }
+	      });
+			})
+		}
+	})
+});
+
+//Need password to access a forum. Might eventually add invites as well through direct messages?
+app.post('/access_forum', (req,res)=> {
+	var query = `SELECT * FROM Forums WHERE f_name = '${req.body.forumName}' AND f_password = '${req.body.forumPassword}'`;
+	db.query(query, (err,result) => {
+		if(result.rowCount > 0) {
+      update=`UPDATE users SET accessible=array_append(accessible, '${req.body.forumName}') where username='${req.session.username}' AND NOT ('${req.body.forumName}'=any(accessible))`;
+      db.query(update,(err,result)=>{
+				console.log(result)
+        if(err){
+          res.send(`Cannot access this forum, you may already be able to access it`);
+        }
+        else{
+          console.log(result)
+          res.redirect('/catalog')
+        }
+      });
+    }
+    else{
+      return res.send('Incorrect forum name or password');
+    }
+  })
+});
+
 app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
   if(!req.body['g-recaptcha-response']){
     res.send("captcha not filled, placeholder response, ajax resposne coming");
@@ -156,12 +210,14 @@ app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
 	// first, fetch the values needed for the thread table
 	let tSubject = req.body.tSubject;
 	if(!tSubject){tSubject = ""};
+	let tForum = req.body.tForum;
+	if(!tSubject){tForum = "main"};
 	let pUsername = req.session.username;
 	let pText = req.body.pText;
 	if(!pText)
 		res.send("empty post");
 
-	const query = `SELECT "post_thread"('${tSubject}', '${pUsername}', '${pText}') AS id`;
+	const query = `SELECT "post_thread"('${tSubject}', '${tForum}', '${pUsername}', '${pText}') AS id`;
 
 	db.query(query, (error, result) => {
 		if(error){ res.send(error); return; }
