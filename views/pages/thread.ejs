@@ -79,6 +79,7 @@ var role = role;
 
 		<%}%>
 				<span class="username"><%=posts[i].p_username%></span>
+				<img src="https://countryflags.io/<%=posts[i].p_country_code%>/flat/16.png">
 				<%=posts[i].p_timestamp%>
 				<span class="hiddenLink" onclick="ready_new_reply(<%=posts[i].p_post_id%>)">No. <%=posts[i].p_post_id%></span>
 					

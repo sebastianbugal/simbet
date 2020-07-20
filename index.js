@@ -7,6 +7,7 @@ const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
 	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
 })
+const fetch = require('node-fetch');
 
 var bodyParser = require('body-parser');
 
@@ -185,9 +186,9 @@ app.get('/thread/:id', (req,res)=>{
 	});
 });
 app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
-  function post_query(pThreadId, pUsername, pText){
+  function post_query(pThreadId, pUsername, pText, pCountryCode){
     return new Promise(resolve => {
-      const query = `SELECT "post_reply"(${pThreadId}, '${pUsername}', '${pText}') AS id`;
+      const query = `SELECT "post_reply"(${pThreadId}, '${pUsername}', '${pText}', '${pCountryCode}') AS id`;
       console.log(query);
       db.query(query, (error, result) => {
         if(error){ res.send(error); return; }
@@ -197,8 +198,8 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
     })
   }
 
-  async function reply_query(pThreadId, pUsername, pText){
-    let pPostId = await post_query(pThreadId, pUsername, pText);
+  async function reply_query(pThreadId, pUsername, pText, pCountryCode){
+    let pPostId = await post_query(pThreadId, pUsername, pText, pCountryCode);
     const replyRegex = />>[0-9]+/g;
     const replyingTo = pText.match(replyRegex);
     let replyingToSet = new Set(replyingTo);
@@ -217,16 +218,32 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
     res.send("captcha not filled, placeholder response, ajax resposne coming");
     return;
   }
-	let data = {};
-	let pThreadId = req.body.pThreadId;
-	let pUsername = req.session.username;
-	let pText = req.body.pText;
-	if(!pText){
-		res.send("empty post");
+  let pThreadId = req.body.pThreadId;
+  let pUsername = req.session.username;
+  let pText = req.body.pText;
+  if(!pText){
+    res.send("empty post");
     return;
-	}
+  }
 
-  reply_query(pThreadId, pUsername, pText);
+  //get ip
+	let ipApiData = {};
+  ipApiData['countryCode'] = "AX";
+  console.log("ip:" + req.connection.remoteAddress);
+  let ip = req.connection.remoteAddress;
+  let settings = {method:"Get"};
+  const ipApiUrl = `http://ip-api.com/json/${ip}?fields=countryCode`;
+  fetch(ipApiUrl, settings)
+    .then((res) => res.json())
+    .then((json) => {
+      if(json['countryCode'])
+        ipApiData['countryCode'] = json['countryCode'];
+      console.log(json['countryCode']);
+      console.log(ipApiUrl);
+    });
+  console.log("countryCode: " + ipApiData['countryCode']);
+
+  reply_query(pThreadId, pUsername, pText, ipApiData['countryCode']);
   // regular expression to limit consecutive line breaks to two
   pText = pText.replace(/\n\s*\n\s*\n/g, '\n\n');
 	res.redirect('/thread/'+pThreadId);

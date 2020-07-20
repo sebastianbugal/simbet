@@ -33,6 +33,7 @@ CREATE TABLE Posts(
 	p_text VARCHAR(1500),
 	p_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	p_thread_id INT DEFAULT -1, -- -1 indicates its a thread
+	p_country_code CHAR(2) DEFAULT 'AX',
 	-- thread data
 	t_subject VARCHAR(120),
 	t_pinned BOOLEAN DEFAULT 'f',
@@ -83,16 +84,17 @@ SELECT "post_thread"('${tSubject}', '${pUsername}', '${pText}') AS id;
 CREATE OR REPLACE FUNCTION post_reply(
 	in_p_thread_id INT, 
 	in_p_username VARCHAR(18), 
-	in_p_text VARCHAR(1500)
+	in_p_text VARCHAR(1500),
+	in_p_country_code CHAR(2)
 )
 RETURNS INT AS $$
 DECLARE fresh_user INT := 1;
 DECLARE new_post_id INT := -1;
 BEGIN
 	INSERT INTO Posts(
-		p_thread_id, p_username, p_text)
+		p_thread_id, p_username, p_text, p_country_code)
 	VALUES(
-		in_p_thread_id, in_p_username, in_p_text);
+		in_p_thread_id, in_p_username, in_p_text, in_p_country_code);
 	SELECT currval(pg_get_serial_sequence('Posts', 'p_post_id')) INTO new_post_id;
 	-- sees if user has already posted
 	IF EXISTS(

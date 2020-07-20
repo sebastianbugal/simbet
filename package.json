@@ -16,7 +16,9 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "jquery": "^3.5.1",
-    "pg": "^8.2.1"
+    "node-fetch": "^2.6.0",
+    "pg": "^8.2.1",
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
     "got": "^11.3.0",
