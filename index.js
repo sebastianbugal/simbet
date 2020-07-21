@@ -84,7 +84,7 @@ app.get('/userView', (req,res) =>{
     var results = {'username': req.session.username};
     res.render('pages/userView',results)}
   else{
-    res.render('pages/noAccess')
+    res.render('pages/noAccess.ejs')
   }
 })
 app.get('/user_add', (req,res)=>{
@@ -200,47 +200,84 @@ app.post('/access_forum', (req,res)=> {
   })
 });
 
+app.get('/rules', (req,res)=>{
+  res.render('pages/rules.ejs');
+});
+
 app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
   if(!req.body['g-recaptcha-response']){
     res.send("captcha not filled, placeholder response, ajax resposne coming");
     return;
   }
-	if(req.session.loggedin==false){ res.render('pages/noAccess'); return; }
-	let data = {};
-	// first, fetch the values needed for the thread table
-	let tSubject = req.body.tSubject;
-	if(!tSubject){tSubject = ""};
-	let tForum = req.body.tForum;
-	if(!tSubject){tForum = "main"};
-	let pUsername = req.session.username;
-	let pText = req.body.pText;
-	if(!pText)
-		res.send("empty post");
+  if(req.session.loggedin==false){ res.render('pages/noAccess.ejs'); return; }
+  let data = {};
+  // first, fetch the values needed for the thread table
+  let tSubject = req.body.tSubject;
+  if(!tSubject){tSubject = ""};
+  let tForum = req.body.tForum;
+  if(!tSubject){tForum = "main"};
+  let pUsername = req.session.username;
+  let pText = req.body.pText;
+  if(!pText)
+    res.send("empty post");
 
-	const query = `SELECT "post_thread"('${tSubject}', '${tForum}', '${pUsername}', '${pText}') AS id`;
+  const query = `SELECT "post_thread"('${tSubject}', '${tForum}', '${pUsername}', '${pText}') AS id`;
 
-	db.query(query, (error, result) => {
-		if(error){ res.send(error); return; }
-		res.redirect('/thread/' + result.rows[0].id);
-	});
+  db.query(query, (error, result) => {
+    if(error){ res.send(error); return; }
+    res.redirect('/thread/' + result.rows[0].id);
+  });
 });
 
 app.get('/thread/:id', (req,res)=>{
-	let data = {};
-	let id = req.params.id;
-	const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
-	db.query(query, (error, result) => {
-		if(error){ res.send(error); return; }
-		data['posts'] =  result.rows;
-		data['username'] = "";
-		if(req.session.loggedin == true){
-			data['username'] = req.session.username;
+  let data = {};
+  let id = req.params.id;
+  const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
+  db.query(query, (error, result) => {
+    if(error){ res.send(error); return; }
+    data['posts'] =  result.rows;
+    data['username'] = "";
+    if(req.session.loggedin == true){
+      data['username'] = req.session.username;
       data['role'] = req.session.role;
     }
-		//console.log(result.rows);
-		res.render('pages/thread.ejs', data);
-	});
+    //console.log(result.rows);
+    res.render('pages/thread.ejs', data);
+  });
 });
+
+
+app.get('/report-post/:id', (req, res)=>{
+  let data = {};
+  data['p_post_id'] = req.params.id;
+
+  res.render('pages/reportPost.ejs', data);
+});
+
+app.post('/send-report', bodyParser.urlencoded({extended:false}), (req, res)=>{
+  if(req.session.loggedin==false){ res.render('pages/noAccess.ejs'); return; }
+  if(!req.body['g-recaptcha-response']){
+    res.send("captcha not filled, placeholder response, ajax resposne coming");
+    return;
+  }
+  let data = {};
+  data['pPostId'] = req.body.rPostId; 
+  let rRule = req.body.rRule;
+  if(req.body.reason == "law"){
+    rRule = req.body.reason;
+  }
+  let rPostId = req.body.rPostId;
+  let rUsername = req.session.username;
+  data['p_post_id'] = req.params.id;
+  const query = `INSERT INTO Reports(r_rule, r_post_id, r_username) VALUES('${rRule}', '${rPostId}', '${rUsername}')`;
+  console.log(query);
+  db.query(query, (error, result) => {
+    if(error){res.send(error); return;}
+  });
+  
+  res.render('pages/reportSent.ejs', data);
+});
+
 app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
   function post_query(pThreadId, pUsername, pText, pCountryCode){
     return new Promise(resolve => {
@@ -268,7 +305,7 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
     })
   }
 
-	if(req.session.loggedin==false){ res.render('pages/noAccess'); return; }
+  if(req.session.loggedin==false){ res.render('pages/noAccess.ejs'); return; }
 
   if(!req.body['g-recaptcha-response']){
     res.send("captcha not filled, placeholder response, ajax resposne coming");
@@ -283,7 +320,7 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
   }
 
   //get ip
-	let ipApiData = {};
+  let ipApiData = {};
   ipApiData['countryCode'] = "AX";
   console.log("ip:" + req.connection.remoteAddress);
   let ip = req.connection.remoteAddress;
@@ -302,7 +339,7 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
   reply_query(pThreadId, pUsername, pText, ipApiData['countryCode']);
   // regular expression to limit consecutive line breaks to two
   pText = pText.replace(/\n\s*\n\s*\n/g, '\n\n');
-	res.redirect('/thread/'+pThreadId);
+  res.redirect('/thread/'+pThreadId);
 });
 
 app.post('/loginForm', (req, res) => {
@@ -338,7 +375,7 @@ app.post('/registerForm', (req, res) => {
         } else {
           var email = '';
         }
-		var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
+    var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
         db.query(query, (err,result) => {
           if(result) {
             console.log("Successful registration.");
@@ -428,6 +465,8 @@ app.post('/banUser', (req, res)=> {
   // })
   res.send("Database needs updating");
 })
+
+
 
 app.post('/deleteUser', (req, res)=> {
   var username = req.body.username;

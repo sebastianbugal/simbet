@@ -112,7 +112,7 @@ var role = role;
 		<%}%>
 		<%//impossible for last post to have a reply, skip lookahead (prevents out of bounds index)%>
 		<%while(i != posts.length-1 &&  posts[i].p_post_id == posts[i+1].p_post_id){%>
-			<a class="reply" href="#p<%=posts[i].reply_id%>">>><%=posts[i+1].reply_id%></a>
+			<a class="reply" href="#p<%=posts[i+1].reply_id%>">>><%=posts[i+1].reply_id%></a>
 			<%//console.log(posts[i+1].parent_id + " has a reply from: " + posts[i+1].reply_id);%>
 			<%i++;%>
 		<%}%>

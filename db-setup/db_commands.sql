@@ -60,6 +60,13 @@ CREATE TABLE Posts(
 	t_post_num INT DEFAULT 1
 );
 
+CREATE TABLE Reports(
+	r_report_id SERIAL PRIMARY KEY,
+	r_rule VARCHAR(18),
+	r_post_id INT REFERENCES Posts(p_post_id),
+	r_username VARCHAR(18) REFERENCES Users(username)
+)
+
 -- table for holding replies relationship between posts
 CREATE TABLE Replies(
 	parent_id SERIAL REFERENCES posts(p_post_id),
