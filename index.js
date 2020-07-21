@@ -1,24 +1,31 @@
-const express = require('express')
+const express = require('express'),
+  http = require('http');
 const path = require('path')
 const session = require('express-session')
+// const http=require('http').Server(express);
+const { Chess } = require('./public/js/chess.js')
 const PORT = process.env.PORT || 5000
 const { Pool } = require('pg');
+
 const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
 	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
 })
+var fen;
 const fetch = require('node-fetch');
 
 var bodyParser = require('body-parser');
 
-
 const app = express();
+var server = http.createServer(app);
+const io = require('socket.io').listen(server);
 
 app.use(session ({
   secret: 'splatsplatsplat',
   resave: false,
   saveUninitialized: false
 }))
+const sharedsession = require("express-socket.io-session");
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use(express.static(path.join(__dirname, 'public')))
@@ -30,8 +37,12 @@ app.use(function (req, res, next) {
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
+
+
 app.get('/', (req, res) => res.render('pages/login'))
+
 app.get('/login', (req, res) => res.render('pages/login'))
+
 app.get('/admin', (req, res) => {
   // check for admin rights
   if(req.session.loggedin) {
@@ -46,6 +57,10 @@ app.get('/admin', (req, res) => {
     return res.redirect('login');
   }
 });
+
+app.get('/chat',(req,res)=>{
+  res.render('pages/chat');
+})
 // catalog
 // Catalog will now only show posts where the user is within the accessible forum
 var refresh_catalog = (req, res) => {
@@ -511,6 +526,102 @@ app.post('/updateAdmin', (req, res)=> {
     res.render('pages/adminDashboard', results);
   })
 })
+const chess = new Chess()
+var players=[];
+var bid;
+var wid;
+io.on('connection', socket=>{
+  //chat
+
+  socket.on('username', function(username) {
+    socket.username = username;
+    io.emit('is_online', '🔵 <i>' + socket.username + ' join the chat..</i>');
+  });
+
+  socket.on('disconnect', function(username) {
+    io.emit('is_online', '🔴 <i>' + socket.username + ' left the chat..</i>');
+  })
+
+  socket.on('chat_message', function(message) {
+    io.emit('chat_message', '<strong>' + socket.username + '</strong>: ' + message);
+  });
+
+  //chatt
+
+  if(wid!=null){
+    bid=socket.id
+  }
+  else{
+    wid=socket.id
+  }
+
+
+  io.sockets.emit('fen',chess.fen());
+  console.log(socket.id)
+  socket.on('drag_start',data=>{
+    
+    if(chess.game_over()){
+      socket.emit('game_over',true);
+    }
+    console.log(data)
+    if((chess.turn()==='w'&& data.search(/^b/) !== -1 && wid==socket.id)){
+      socket.emit('side',true);
+    }
+    else{
+      socket.emit('side',true)
+    }
+    if((chess.turn() === 'b' && data.search(/^w/) !== -1 && bid==socket.id)){
+      socket.emit('side',true)
+       }
+    else{
+      socket.emit('side',true);
+    }
+    })
+
+  socket.on('move', data=>{
+    move=chess.move(data);
+    var status = ''
+    var moveColor = 'White'
+
+    if (move === null){
+      console.log('sdsd')
+    }
+    if (chess.turn() === 'b') {
+      moveColor = 'Black'
+    }
+  
+    // checkmate?
+    if (chess.in_checkmate()) {
+      status = 'Game over, ' + moveColor + ' is in checkmate.'
+    }
+  
+    // draw?
+    else if (chess.in_draw()) {
+      status = 'Game over, drawn position'
+    }
+  
+    // game still on
+    else {
+      status = moveColor + ' to move'
+  
+      // check?
+      if (chess.in_check()) {
+        status += ', ' + moveColor + ' is in check'
+      }
+    }
+    io.sockets.emit('fen',chess.fen());
+  })
+  
+}); 
+
+
+app.get('/games',(req,res)=>{
+  res.render('pages/games');
+});
+
+app.get('/chess', (req,res)=>{
+  res.render('pages/chess')
+})
 
 app.get('/logout',function(req,res){
     req.session.destroy((err) => {
@@ -522,5 +633,5 @@ app.get('/logout',function(req,res){
     });
 
 });
-
-app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
+server.listen(1000);
+// app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
