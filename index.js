@@ -1,31 +1,24 @@
-const express = require('express'),
-  http = require('http');
+const express = require('express')
 const path = require('path')
 const session = require('express-session')
-// const http=require('http').Server(express);
-const { Chess } = require('./public/js/chess.js')
 const PORT = process.env.PORT || 5000
 const { Pool } = require('pg');
-
 const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
 	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
 })
-var fen;
 const fetch = require('node-fetch');
 
 var bodyParser = require('body-parser');
 
+
 const app = express();
-var server = http.createServer(app);
-const io = require('socket.io').listen(server);
 
 app.use(session ({
   secret: 'splatsplatsplat',
   resave: false,
   saveUninitialized: false
 }))
-const sharedsession = require("express-socket.io-session");
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use(express.static(path.join(__dirname, 'public')))
@@ -37,12 +30,8 @@ app.use(function (req, res, next) {
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
-
-
 app.get('/', (req, res) => res.render('pages/login'))
-
 app.get('/login', (req, res) => res.render('pages/login'))
-
 app.get('/admin', (req, res) => {
   // check for admin rights
   if(req.session.loggedin) {
@@ -57,10 +46,6 @@ app.get('/admin', (req, res) => {
     return res.redirect('login');
   }
 });
-
-app.get('/chat',(req,res)=>{
-  res.render('pages/chat');
-})
 // catalog
 // Catalog will now only show posts where the user is within the accessible forum
 var refresh_catalog = (req, res) => {
@@ -526,6 +511,8 @@ app.post('/updateAdmin', (req, res)=> {
     res.render('pages/adminDashboard', results);
   })
 })
+
+
 const chess = new Chess()
 var players=[];
 var bid;
@@ -633,5 +620,5 @@ app.get('/logout',function(req,res){
     });
 
 });
-server.listen(1000);
-// app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
+
+app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
