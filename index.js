@@ -641,5 +641,5 @@ app.get('/logout',function(req,res){
     });
 
 });
-server.listen(1000);
+server.listen(PORT, () => console.log(`Listening on ${ PORT }`));
 // app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
