@@ -11,12 +11,9 @@ const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
 	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
 })
-<<<<<<< HEAD
 var fen;
-=======
 const fetch = require('node-fetch');
 
->>>>>>> f2e4f165681cbbc0d35428391293dee5e32c12c9
 var bodyParser = require('body-parser');
 
 const app = express();
@@ -625,96 +622,6 @@ app.get('/games',(req,res)=>{
 app.get('/chess', (req,res)=>{
   res.render('pages/chess')
 })
-
-
-const chess = new Chess()
-var players=[];
-var bid;
-var wid;
-io.on('connection', socket=>{
-  //chat
-
-  socket.on('username', function(username) {
-    socket.username = username;
-    io.emit('is_online', '🔵 <i>' + socket.username + ' join the chat..</i>');
-  });
-
-  socket.on('disconnect', function(username) {
-    io.emit('is_online', '🔴 <i>' + socket.username + ' left the chat..</i>');
-  })
-
-  socket.on('chat_message', function(message) {
-    io.emit('chat_message', '<strong>' + socket.username + '</strong>: ' + message);
-  });
-
-  //chatt
-
-  if(wid!=null){
-    bid=socket.id
-  }
-  else{
-    wid=socket.id
-  }
-
-
-  io.sockets.emit('fen',chess.fen());
-  console.log(socket.id)
-  socket.on('drag_start',data=>{
-    
-    if(chess.game_over()){
-      socket.emit('game_over',true);
-    }
-    console.log(data)
-    if((chess.turn()==='w'&& data.search(/^b/) !== -1 && wid==socket.id)){
-      socket.emit('side',true);
-    }
-    else{
-      socket.emit('side',true)
-    }
-    if((chess.turn() === 'b' && data.search(/^w/) !== -1 && bid==socket.id)){
-      socket.emit('side',true)
-       }
-    else{
-      socket.emit('side',true);
-    }
-    })
-
-  socket.on('move', data=>{
-    move=chess.move(data);
-    var status = ''
-    var moveColor = 'White'
-
-    if (move === null){
-      console.log('sdsd')
-    }
-    if (chess.turn() === 'b') {
-      moveColor = 'Black'
-    }
-  
-    // checkmate?
-    if (chess.in_checkmate()) {
-      status = 'Game over, ' + moveColor + ' is in checkmate.'
-    }
-  
-    // draw?
-    else if (chess.in_draw()) {
-      status = 'Game over, drawn position'
-    }
-  
-    // game still on
-    else {
-      status = moveColor + ' to move'
-  
-      // check?
-      if (chess.in_check()) {
-        status += ', ' + moveColor + ' is in check'
-      }
-    }
-    io.sockets.emit('fen',chess.fen());
-  })
-  
-}); 
-
 
 app.get('/games',(req,res)=>{
   res.render('pages/games');
