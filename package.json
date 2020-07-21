@@ -23,7 +23,8 @@
     "jquery": "^3.5.1",
     "pg": "^8.2.1",
     "socket.io": "^2.3.0",
-    "socket.io-session-middleware": "^0.1.0"
+    "socket.io-session-middleware": "^0.1.0",
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
     "got": "^11.3.0",

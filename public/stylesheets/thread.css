@@ -31,6 +31,7 @@
    left: 50%;
 	padding: 4px;
 	user-select: none;
+	z-index: 40;
 }
 #newPostSectionHeader{
 	text-align: center;
@@ -44,7 +45,7 @@
 }
 .postMenuContainer{
 	position: relative;
-	display: inline-block
+	display: inline-block;
 }
 .postMenuBtn{
 	cursor: pointer;

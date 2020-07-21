@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Report For No. <%=p_post_id%></title>
+<link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
+<link rel="stylesheet" type="text/css" href="/stylesheets/reportPost.css">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+<div>
+	Report For No. <%=p_post_id%>:<br>
+	<form id="reportForm" method="post" action="/send-report">
+		<input style="display:none" type="text" name="rPostId" value="<%=p_post_id%>">
+		<input id="rules" type="radio" name="reason" value="rules" checked> This post violates a <a href="/rules">rule</a>.<br>
+		---><select id="ruleSelect" name="rRule">
+			<option value = "low_quality">This post is extremely low quality.</option> 
+			<option value = "advertising">This post is advertising or begging.</option> 
+			<option value = "dox">This post contains personal information ("dox").</option> 
+			<option value = "spam">This post is indicitive of spamming/flooding.</option> 
+			<option value = "underage">This user is underage.</option> 
+		</select>
+		<br>
+		<input id="law" type="radio" name="reason" value="law"> This post violates United States law.
+		<%//testing data-sitekey: 6LekFLEZAAAAALJ7jQOKGmsHaKJqDbFEARsaMQV6
+		//actual data-sitekey: 6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI%>
+		<br>
+		<div class="g-recaptcha" data-theme="light" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+		False reports will result in an account/ip ban. <br>
+		<input type="submit" value="Report">
+	</form>
+</div>
+
+</body>
+
+<script>
+$("#law").change(toggle_rule_select);
+$("#rules").change(toggle_rule_select);
+
+function toggle_rule_select(){
+	if($("#law").attr("checked")){
+		$('#ruleSelect').prop('disabled', true);
+	} else {
+		$('#ruleSelect').prop('disabled', false);
+	}
+}
+</script>
+</html>
