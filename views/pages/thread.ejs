@@ -5,7 +5,7 @@ var role = role;
 <!DOCTYPE html>
 <html>
 <head>
-<title>No. <%=op.p_post_id%></title>
+<title>No. <%=op.p_post_id%> in <%=op.t_forum%></title>
 <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
 <link rel="stylesheet" type="text/css" href="/stylesheets/thread.css">
 <% include ../partials/header.ejs %>
@@ -32,8 +32,8 @@ var role = role;
 					<%if(username != ""){%>
 						Posting as: <span class="username"><%=username%></span>
 					<%} else{%>
-						<a href="/">Log in to Post</a>	
-					<%}%>	
+						<a href="/">Log in to Post</a>
+					<%}%>
 					</td>
 				</tr>
 				<tr><td><textarea id="userTextarea" name="pText" form="newPostForm" placeholder="Comment"></textarea></td></tr>
@@ -61,7 +61,7 @@ var role = role;
 		</span>
 	</div>
 	<hr>
-	
+
 	<%let opPost = true;%>
 	<%let i = 0;%>
 	<%while(i<posts.length){%>
@@ -71,17 +71,15 @@ var role = role;
 			<div id="p<%=posts[i].p_post_id%>" class="opPost">
 				<span class="subject"><%=posts[i].t_subject%></span>
 			<%opPost = false;%>
-
 		<%} else { %>
 			<div id="p<%=posts[i].p_post_id%>" class="postBox">
 			>>
 			<div class="post">
-
 		<%}%>
 				<span class="username"><%=posts[i].p_username%></span>
+				<img src="https://countryflags.io/<%=posts[i].p_country_code%>/flat/16.png">
 				<%=posts[i].p_timestamp%>
 				<span class="hiddenLink" onclick="ready_new_reply(<%=posts[i].p_post_id%>)">No. <%=posts[i].p_post_id%></span>
-					
 				<!-- postMenu -->
 				<span class ="postMenuContainer">
 					<button class="postMenuBtn" onclick="toggle_post_menu(<%=posts[i].p_post_id%>)">v</button>
@@ -101,7 +99,6 @@ var role = role;
 						<% } %>
 					</div>
 				</span>
-
 		<%let editedPText = posts[i].p_text.replace(/((?<=>>)[0-9]+)|>>([0-9]+)/g, "<a href='#p" + "$2" + "'>$&</a>");%>
 		<%let hasReplies = false;%>
 		<%//console.log("rendering:" + posts[i].p_post_id);%>
@@ -111,7 +108,7 @@ var role = role;
 		<%}%>
 		<%//impossible for last post to have a reply, skip lookahead (prevents out of bounds index)%>
 		<%while(i != posts.length-1 &&  posts[i].p_post_id == posts[i+1].p_post_id){%>
-			<a class="reply" href="#p<%=posts[i].reply_id%>">>><%=posts[i+1].reply_id%></a>
+			<a class="reply" href="#p<%=posts[i+1].reply_id%>">>><%=posts[i+1].reply_id%></a>
 			<%//console.log(posts[i+1].parent_id + " has a reply from: " + posts[i+1].reply_id);%>
 			<%i++;%>
 		<%}%>
@@ -122,14 +119,9 @@ var role = role;
 		<%i++;%>
 <%}%>
 <%// add missing one%>
-
-
-
-
 	<div style="text-align: center;">
 		[<a onclick="toggle_new_reply()">Post a Reply</a>]
 	</div>
-
 	<div id="bottom" class="selectBar">
 		[<a href="/catalog">Catalog</a>]
 		[<a href="#top">Top</a>]
@@ -145,7 +137,6 @@ var role = role;
 </div>
 </body>
 <script>
-
 function toggle_new_reply(){
 	if($("#newPostSection").css("display") == "none")
 		$("#newPostSection").css("display", "block");
@@ -163,7 +154,6 @@ function ready_new_reply(newReplyId){
 	//scroll down to added text if needed
 	$("#userTextarea").scrollTop(200000);
 }
-
 function toggle_post_menu(id){
 	if($("#postMenu" + id).css("display") == "none"){
 		$(".postMenu").css("display","none");
@@ -172,24 +162,18 @@ function toggle_post_menu(id){
 		$("#postMenu" + id).css("display","none");
 	}
 }
-
 function show_preview_reply(id){
 	$("#pre"+id).css("display", "relative");
 }
-
 function hide_preview_reply(id){
 	$("#pre"+id).css("display", "none");
 }
-
-
 // hide postMenu if click elsewhere while its up
 $("body").click((event)=>{
 	if(!$(event.target).hasClass("postMenuBtn") && !$(event.target).hasClass("postMenuLink")){
 		$(".postMenu").css("display","none");
 	}
 });
-
-
 // makes newPostSection draggable:
 drag_element(document.getElementById("newPostSection"));
 function drag_element(elmnt) {
@@ -215,6 +199,5 @@ function drag_element(elmnt) {
 		};
 	});
 }
-
 </script>
 </html>

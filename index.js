@@ -12,6 +12,8 @@ const db = new Pool({
 	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
 })
 var fen;
+const fetch = require('node-fetch');
+
 var bodyParser = require('body-parser');
 
 const app = express();
@@ -60,8 +62,11 @@ app.get('/chat',(req,res)=>{
   res.render('pages/chat');
 })
 // catalog
+// Catalog will now only show posts where the user is within the accessible forum
 var refresh_catalog = (req, res) => {
-	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1 ORDER BY p_post_id DESC`;
+
+	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1
+	AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
 	db.query(threadQuery, (error, result) => {
 		if(error){ res.send(error); return; }
 		let data = {'rows':result.rows};
@@ -76,7 +81,8 @@ var refresh_catalog = (req, res) => {
 app.all('/catalog', bodyParser.urlencoded({extended:false}), refresh_catalog);
 
 var refresh_catalog_personal = (req, res) => {
-	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[])) AND p_thread_id = -1 ORDER BY p_post_id DESC`;
+	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[]))
+	AND p_thread_id = -1 AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
 	db.query(threadQuery, (error, result) => {
 		if(error){ res.send(error); return; }
 		let data = {'rows':result.rows};
@@ -93,7 +99,7 @@ app.get('/userView', (req,res) =>{
     var results = {'username': req.session.username};
     res.render('pages/userView',results)}
   else{
-    res.render('pages/noAccess')
+    res.render('pages/noAccess.ejs')
   }
 })
 app.get('/user_add', (req,res)=>{
@@ -159,49 +165,138 @@ app.post('/feed', (req,res)=>{
 
 });
 
+//Create forum with password. Admin users gain access to all things.
+app.post('/create_forum', (req,res)=> {
+	forumName = req.body.forumName;
+	forumPassword = req.body.forumPassword
+	owner = req.session.username;
+	db.query(`SELECT f_name from forums WHERE f_name = '${forumName}'`, (err, result) => {
+		if (result.rowCount > 0) {
+			return res.send(`Forum name already taken, contact forum owner '${owner}' to be allowed access.`);
+		} else {
+			const query = `INSERT INTO Forums(f_name, f_password, f_owner) VALUES ('${forumName}', '${forumPassword}', '${owner}')`;
+			db.query(query, (err, result) => {
+				if(err){res.send(err); return; }
+				update=`UPDATE users SET accessible=array_append(accessible, '${req.body.forumName}') where (username='${req.session.username}' OR role = 'a') AND NOT ('${req.body.forumName}'=any(accessible))`;
+	      db.query(update,(err,result)=>{
+					console.log(result)
+	        if(err){
+	          res.send(err);
+	        }
+	        else{
+	          res.redirect('/catalog');
+	        }
+	      });
+			})
+		}
+	})
+});
+
+//Need password to access a forum. Might eventually add invites as well through direct messages?
+app.post('/access_forum', (req,res)=> {
+	var query = `SELECT * FROM Forums WHERE f_name = '${req.body.forumName}' AND f_password = '${req.body.forumPassword}'`;
+	db.query(query, (err,result) => {
+		if(result.rowCount > 0) {
+      update=`UPDATE users SET accessible=array_append(accessible, '${req.body.forumName}') where username='${req.session.username}' AND NOT ('${req.body.forumName}'=any(accessible))`;
+      db.query(update,(err,result)=>{
+				console.log(result)
+        if(err){
+          res.send(`Cannot access this forum, you may already be able to access it`);
+        }
+        else{
+          console.log(result)
+          res.redirect('/catalog')
+        }
+      });
+    }
+    else{
+      return res.send('Incorrect forum name or password');
+    }
+  })
+});
+
+app.get('/rules', (req,res)=>{
+  res.render('pages/rules.ejs');
+});
+
 app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
   if(!req.body['g-recaptcha-response']){
     res.send("captcha not filled, placeholder response, ajax resposne coming");
     return;
   }
-	if(req.session.loggedin==false){ res.render('pages/noAccess'); return; }
-	let data = {};
-	// first, fetch the values needed for the thread table
-	let tSubject = req.body.tSubject;
-	if(!tSubject){tSubject = ""};
-	let pUsername = req.session.username;
-	let pText = req.body.pText;
-	if(!pText)
-		res.send("empty post");
+  if(req.session.loggedin==false){ res.render('pages/noAccess.ejs'); return; }
+  let data = {};
+  // first, fetch the values needed for the thread table
+  let tSubject = req.body.tSubject;
+  if(!tSubject){tSubject = ""};
+  let tForum = req.body.tForum;
+  if(!tSubject){tForum = "main"};
+  let pUsername = req.session.username;
+  let pText = req.body.pText;
+  if(!pText)
+    res.send("empty post");
 
-	const query = `SELECT "post_thread"('${tSubject}', '${pUsername}', '${pText}') AS id`;
+  const query = `SELECT "post_thread"('${tSubject}', '${tForum}', '${pUsername}', '${pText}') AS id`;
 
-	db.query(query, (error, result) => {
-		if(error){ res.send(error); return; }
-		res.redirect('/thread/' + result.rows[0].id);
-	});
+  db.query(query, (error, result) => {
+    if(error){ res.send(error); return; }
+    res.redirect('/thread/' + result.rows[0].id);
+  });
 });
 
 app.get('/thread/:id', (req,res)=>{
-	let data = {};
-	let id = req.params.id;
-	const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
-	db.query(query, (error, result) => {
-		if(error){ res.send(error); return; }
-		data['posts'] =  result.rows;
-		data['username'] = "";
-		if(req.session.loggedin == true){
-			data['username'] = req.session.username;
+  let data = {};
+  let id = req.params.id;
+  const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
+  db.query(query, (error, result) => {
+    if(error){ res.send(error); return; }
+    data['posts'] =  result.rows;
+    data['username'] = "";
+    if(req.session.loggedin == true){
+      data['username'] = req.session.username;
       data['role'] = req.session.role;
     }
-		//console.log(result.rows);
-		res.render('pages/thread.ejs', data);
-	});
+    //console.log(result.rows);
+    res.render('pages/thread.ejs', data);
+  });
 });
+
+
+app.get('/report-post/:id', (req, res)=>{
+  let data = {};
+  data['p_post_id'] = req.params.id;
+
+  res.render('pages/reportPost.ejs', data);
+});
+
+app.post('/send-report', bodyParser.urlencoded({extended:false}), (req, res)=>{
+  if(req.session.loggedin==false){ res.render('pages/noAccess.ejs'); return; }
+  if(!req.body['g-recaptcha-response']){
+    res.send("captcha not filled, placeholder response, ajax resposne coming");
+    return;
+  }
+  let data = {};
+  data['pPostId'] = req.body.rPostId; 
+  let rRule = req.body.rRule;
+  if(req.body.reason == "law"){
+    rRule = req.body.reason;
+  }
+  let rPostId = req.body.rPostId;
+  let rUsername = req.session.username;
+  data['p_post_id'] = req.params.id;
+  const query = `INSERT INTO Reports(r_rule, r_post_id, r_username) VALUES('${rRule}', '${rPostId}', '${rUsername}')`;
+  console.log(query);
+  db.query(query, (error, result) => {
+    if(error){res.send(error); return;}
+  });
+  
+  res.render('pages/reportSent.ejs', data);
+});
+
 app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
-  function post_query(pThreadId, pUsername, pText){
+  function post_query(pThreadId, pUsername, pText, pCountryCode){
     return new Promise(resolve => {
-      const query = `SELECT "post_reply"(${pThreadId}, '${pUsername}', '${pText}') AS id`;
+      const query = `SELECT "post_reply"(${pThreadId}, '${pUsername}', '${pText}', '${pCountryCode}') AS id`;
       console.log(query);
       db.query(query, (error, result) => {
         if(error){ res.send(error); return; }
@@ -211,8 +306,8 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
     })
   }
 
-  async function reply_query(pThreadId, pUsername, pText){
-    let pPostId = await post_query(pThreadId, pUsername, pText);
+  async function reply_query(pThreadId, pUsername, pText, pCountryCode){
+    let pPostId = await post_query(pThreadId, pUsername, pText, pCountryCode);
     const replyRegex = />>[0-9]+/g;
     const replyingTo = pText.match(replyRegex);
     let replyingToSet = new Set(replyingTo);
@@ -225,25 +320,41 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
     })
   }
 
-	if(req.session.loggedin==false){ res.render('pages/noAccess'); return; }
+  if(req.session.loggedin==false){ res.render('pages/noAccess.ejs'); return; }
 
   if(!req.body['g-recaptcha-response']){
     res.send("captcha not filled, placeholder response, ajax resposne coming");
     return;
   }
-	let data = {};
-	let pThreadId = req.body.pThreadId;
-	let pUsername = req.session.username;
-	let pText = req.body.pText;
-	if(!pText){
-		res.send("empty post");
+  let pThreadId = req.body.pThreadId;
+  let pUsername = req.session.username;
+  let pText = req.body.pText;
+  if(!pText){
+    res.send("empty post");
     return;
-	}
+  }
 
-  reply_query(pThreadId, pUsername, pText);
+  //get ip
+  let ipApiData = {};
+  ipApiData['countryCode'] = "AX";
+  console.log("ip:" + req.connection.remoteAddress);
+  let ip = req.connection.remoteAddress;
+  let settings = {method:"Get"};
+  const ipApiUrl = `http://ip-api.com/json/${ip}?fields=countryCode`;
+  fetch(ipApiUrl, settings)
+    .then((res) => res.json())
+    .then((json) => {
+      if(json['countryCode'])
+        ipApiData['countryCode'] = json['countryCode'];
+      console.log(json['countryCode']);
+      console.log(ipApiUrl);
+    });
+  console.log("countryCode: " + ipApiData['countryCode']);
+
+  reply_query(pThreadId, pUsername, pText, ipApiData['countryCode']);
   // regular expression to limit consecutive line breaks to two
   pText = pText.replace(/\n\s*\n\s*\n/g, '\n\n');
-	res.redirect('/thread/'+pThreadId);
+  res.redirect('/thread/'+pThreadId);
 });
 
 app.post('/loginForm', (req, res) => {
@@ -279,7 +390,7 @@ app.post('/registerForm', (req, res) => {
         } else {
           var email = '';
         }
-		var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
+    var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
         db.query(query, (err,result) => {
           if(result) {
             console.log("Successful registration.");
@@ -369,6 +480,8 @@ app.post('/banUser', (req, res)=> {
   // })
   res.send("Database needs updating");
 })
+
+
 
 app.post('/deleteUser', (req, res)=> {
   var username = req.body.username;

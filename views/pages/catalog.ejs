@@ -15,6 +15,22 @@
 	<div id="header">
 		<img src="/banner.png"></img>
 		<hr>
+		<form class="col-sm-4" action="/create_forum" method="POST">
+	    <div class="registerForm">
+	      <input class="textBoxes" type="text" placeholder= "Name your new forum" name="forumName" required><br/>
+				<input class="textBoxes" type="password" placeholder= "Password" name="forumPassword" required><br/>
+	      <input class="submitButtons" type="submit" name="forumSubmit" value="Create Forum">
+	    </div>
+	  </form>
+		<form class="col-sm-4" action="/access_forum" method="POST">
+	    <div class="registerForm">
+	      <input class="textBoxes" type="text" placeholder= "Forum you would like to access" name="forumName" required><br/>
+				<input class="textBoxes" type="password" placeholder= "Password" name="forumPassword" required><br/>
+	      <input class="submitButtons" type="submit" name="accessSubmit" value="Access Forum">
+	    </div>
+	  </form>
+		<br>
+		<hr>
 		[<a id="newThreadBtn">Start a New Thread</a>]
 		<div id="newThreadSection" style="display:none">
 			<form id="postForm" action="/add-thread" method="post">
@@ -29,7 +45,9 @@
 					</tr>
 					<tr>
 						<td>Subject</td>
-						<td><input name="tSubject" maxlength="120" type="text"></input><input value="Post" type="submit"></td>
+						<td><input name="tSubject" maxlength="120" type="text"></input><input value="Post" type="submit"></input></td>
+						<td>Forum</td>
+						<td><input name="tForum" maxlength="18" type="text"></input></td>
 					</tr>
 					<tr>
 						<td>Comment</td><td><textarea name="pText" maxlength="1500" rows="6" cols="32"></textarea></td>
@@ -56,13 +74,13 @@
 			[<a>Show All</a>]
 		</span>
 		<hr>
-		
+
 		<div id="top" class="selectBar">
 			[<a>Return</a>]
 			[<a href="#bottom">Bottom</a>]
 			[<a>Refresh</a>]
 			<span class = "spacer"></span>
-			Sort By: 
+			Sort By:
 				<select id="sortOrder">
 					<option value="replyCount">Reply Count</option>
 					<option value="bumpOrder">Bump Order</option>
@@ -75,18 +93,19 @@
 				</select>
 			[<a>Filters</a>]
 			<input type="text" placeholder="Search..."></input>
-		</div>		
+		</div>
 	</div>
 	<hr>
-	
+
 	<div id="catalogContainer">
-	<%rows.forEach((r) => {%>	
+	<%rows.forEach((r) => {%>
 		<a href="/thread/<%=r.p_post_id%>">
 			<div class="threadPreview">
-				<b><span class="subject"><%=r.t_subject%></span></b>: 
+				<b><span class="subject"><%=r.t_subject%></span></b>:
 				<%=r.p_text%>
 				<span style="float:right">
 					by: <span class="username"><%=r.p_username%></span>
+					in: <span class="forum"><%=r.t_forum%></span>
 					<b>R:</b><%=r.t_post_num%>
 					<b>U:</b><%=r.t_user_num%>
 				</span>
@@ -94,7 +113,7 @@
 		</a>
 	<%});%>
 	</div>
-	
+
 	<div id="bottom" class="selectBar">
 		<hr>
 		[<a>Return</a>]
