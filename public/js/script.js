@@ -14,9 +14,9 @@ var color;
 document.getElementById("join").addEventListener("click", function(){
   socket.emit('join_room', null);
 });
-document.getElementById("start").addEventListener("click", function(){
-  socket.emit('start', null);
-});
+// document.getElementById("start").addEventListener("click", function(){
+//   socket.emit('start', null);
+// });
 
 function onDragStart (source, piece, position, orientation) {
   // socket.emit('drag_start',piece);
