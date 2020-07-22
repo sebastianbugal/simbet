@@ -4,7 +4,7 @@ const path = require('path')
 const session = require('express-session')
 // const http=require('http').Server(express);
 const { Chess } = require('./public/js/chess.js')
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 1000
 const { Pool } = require('pg');
 
 const db = new Pool({

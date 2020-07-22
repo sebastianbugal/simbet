@@ -4,7 +4,7 @@ console.log('color');
 
 var board = null
 // var socket = io.connect(window.location.hostname);
-var socket = io.connect('http://localhost:5000');
+var socket = io.connect(window.location.hostname);
 
 var color;
 // socket.on("col", function (data) {
