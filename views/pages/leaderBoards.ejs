@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LeaderBoards</title>
+  <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
+  <link rel="stylesheet" type="text/css" href="stylesheets/forum.css">
+  <% include ../partials/header.ejs %>
+</head>
+
+<body>
+  <% if(session.role == ('a' || 'm')) { %>
+    <% include ../partials/adminNav.ejs %>
+  <% } else { %>
+    <%include ../partials/nav.ejs%>
+  <%} %>
+
+  <div id="chess_leaderboard_container">
+    <table>
+      
+    </table>
+  </div>
+
+  
+</body>
+</html>

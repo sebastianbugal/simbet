@@ -21,6 +21,12 @@ INSERT INTO Users(
 	'test', 'test'
 );
 
+--Insert admin for testing
+INSERT INTO Users(
+	username, password, role
+) VALUES(
+	'admin', 'root', 'a'
+);
 -- Table for private forums
 CREATE TABLE Forums(
 	f_name VARCHAR(18) PRIMARY KEY,
@@ -65,7 +71,7 @@ CREATE TABLE Reports(
 	r_rule VARCHAR(18),
 	r_post_id INT REFERENCES Posts(p_post_id),
 	r_username VARCHAR(18) REFERENCES Users(username)
-)
+);
 
 -- table for holding replies relationship between posts
 CREATE TABLE Replies(

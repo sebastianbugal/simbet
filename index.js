@@ -9,7 +9,7 @@ const { Pool } = require('pg');
 
 const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:School276@localhost/splat'
 })
 var fen;
 const fetch = require('node-fetch');
@@ -46,7 +46,7 @@ app.get('/login', (req, res) => res.render('pages/login'))
 app.get('/admin', (req, res) => {
   // check for admin rights
   if(req.session.loggedin) {
-    if(req.session.admin) {
+    if(req.session.role == ('a' || 'm')) {
       res.render('pages/adminDashboard', {'results': -1})
     }
     else {
@@ -57,6 +57,8 @@ app.get('/admin', (req, res) => {
     return res.redirect('login');
   }
 });
+
+app.get('/leaderBoards', (req, res) => res.render('pages/leaderBoards'))
 
 app.get('/chat',(req,res)=>{
   res.render('pages/chat');
@@ -413,6 +415,7 @@ app.post('/registerForm', (req, res) => {
     })
 })
 
+// TODO update to work with usernames instead user_id
 // admin posts
 app.post('/deletePost', (req, res)=> {
   var pid = req.body.pid;
@@ -452,43 +455,6 @@ app.post('/lockThread', (req, res)=> {
   })
 })
 
-// TODO will need to update the database if we want to implement this one
-app.post('/muteUser', (req, res)=> {
-  var username = req.body.username;
-  // db.query(`UPDATE User SET muted='t' WHERE username=${username}`, (err, result) => {
-  //   if(result.rowCount > 0) {
-  //     console.log(`User muted: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  //   else {
-  //     console.log(`Error muting user: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  // })
-  res.send("Database needs updating");
-})
-
-//TODO will need to update the database and add a check for banned usernames during login if we want to implement this one
-app.post('/banUser', (req, res)=> {
-  var username = req.body.username;
-  // db.query(`UPDATE User SET banned='t' WHERE username=${username}`, (err, result) => {
-  //   if(result.rowCount > 0) {
-  //     console.log(`User banned: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  //   else {
-  //     console.log(`Error banning user: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  // })
-  res.send("Database needs updating");
-})
-
-
 
 app.post('/deleteUser', (req, res)=> {
   var username = req.body.username;
@@ -509,6 +475,7 @@ app.post('/deleteUser', (req, res)=> {
   })
 })
 
+// TODO update this to work with roles
 app.post('/updateAdmin', (req, res)=> {
   var username = req.body.username;
   if(req.body.update_admin == "Add"){
@@ -533,6 +500,9 @@ app.post('/updateAdmin', (req, res)=> {
     res.render('pages/adminDashboard', results);
   })
 })
+
+
+
 const chess = new Chess()
 var players=[];
 var bid;
