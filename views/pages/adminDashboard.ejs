@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>Admin Dashboard</title>
+<link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
 <link rel="stylesheet" type="text/css" href="stylesheets/admin_dash.css">
 <% include ../partials/header.ejs %>
 </head>
@@ -18,7 +19,7 @@
         <h1 id="title">Admin Dashboard</h1>
         <form action="/deletePost" method="post">
             Delete post:
-            <input type="number" name="pid" placeholder="post id"> 
+            <input type="number" name="pid" placeholder="post id">
             <input type="submit" value="Delete Post">
         </form>
         <form action="/deletePost" method="post">

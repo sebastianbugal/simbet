@@ -236,12 +236,19 @@ app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
   if(!pText)
     res.send("empty post");
 
-  const query = `SELECT "post_thread"('${tSubject}', '${tForum}', '${pUsername}', '${pText}') AS id`;
-
-  db.query(query, (error, result) => {
+  db.query(`SELECT * FROM Users WHERE username = '${pUsername}' AND ('${tForum}' = any(accessible))`, (error, result) => {
     if(error){ res.send(error); return; }
-    res.redirect('/thread/' + result.rows[0].id);
-  });
+    //Checks to see if the User can access the forum they are posting to.
+    if(result.rowCount > 0) {
+      const query = `SELECT "post_thread"('${tSubject}', '${tForum}', '${pUsername}', '${pText}') AS id`;
+      db.query(query, (error, result) => {
+        if(error){ res.send(error); return; }
+        res.redirect('/thread/' + result.rows[0].id);
+      });
+    } else {
+      res.redirect('/catalog/');
+    }
+  })
 });
 
 app.get('/thread/:id', (req,res)=>{
@@ -276,7 +283,7 @@ app.post('/send-report', bodyParser.urlencoded({extended:false}), (req, res)=>{
     return;
   }
   let data = {};
-  data['pPostId'] = req.body.rPostId; 
+  data['pPostId'] = req.body.rPostId;
   let rRule = req.body.rRule;
   if(req.body.reason == "law"){
     rRule = req.body.reason;
@@ -289,7 +296,7 @@ app.post('/send-report', bodyParser.urlencoded({extended:false}), (req, res)=>{
   db.query(query, (error, result) => {
     if(error){res.send(error); return;}
   });
-  
+
   res.render('pages/reportSent.ejs', data);
 });
 
@@ -562,7 +569,7 @@ io.on('connection', socket=>{
   })
   socket.on('start',function(){
     console.log('working')
-    
+
   })
   // io.sockets.to('chess_room').on('start',function(){
   //   chess = new Chess()
@@ -570,17 +577,17 @@ io.on('connection', socket=>{
   // })
   // io.sockets.emit('fen',chess.fen());
   socket.on('drag_start',data=>{
-    
+
     if(chess.game_over()){
       socket.to('chess_room').emit('game_over',true);
     }
-    
+
     if((chess.turn()==='w'&& data.search(/^b/) !== -1 && wid==socket.id)){
       console.log(true);
       socket.to('chess_room').emit('side',true);
     }
     else{
-   
+
 
       socket.to('chess_room').emit('side',true)
     }
@@ -591,13 +598,13 @@ io.on('connection', socket=>{
        }
     else{
       socket.to('chess_room').emit('side',true);
-     
+
 
     }
       })
 
   socket.on('move', data=>{
-    
+
     var status = ''
     var moveColor = 'White'
     console.log(socket.id, wid)
@@ -620,16 +627,16 @@ io.on('connection', socket=>{
     if (chess.in_checkmate()) {
       status = 'Game over, ' + moveColor + ' is in checkmate.'
     }
-  
+
     // draw?
     else if (chess.in_draw()) {
       status = 'Game over, drawn position'
     }
-  
+
     // game still on
     else {
       status = moveColor + ' to move'
-  
+
       // check?
       if (chess.in_check()) {
         status += ', ' + moveColor + ' is in check'
@@ -638,8 +645,8 @@ io.on('connection', socket=>{
     console.log(chess.fen())
     socket.to('chess_room').emit('fen',chess.fen());
   })
-  
-}); 
+
+});
 
 
 app.get('/games',(req,res)=>{

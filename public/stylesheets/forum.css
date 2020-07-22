@@ -1,0 +1,58 @@
+body{
+	margin: auto;
+}
+#mainContainer{
+	margin:auto;
+	max-width: 1000px;
+}
+#catalogContainer{
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+}
+.threadPreview{
+	border: 1px solid black;
+	margin: 2px;
+	padding: 9px;
+	color: black;
+}.threadPreview:hover{
+	background-color: #CECECE;
+	text-decoration: none;
+}
+
+.textBoxes {
+	margin: 2px;
+	border: 1px solid black;
+}
+
+.g-recaptcha {
+	margin: 2px;
+	border: 1px solid black;
+}
+
+.forumButtons {
+	margin: 2px;
+	background-color: #D3D3D3;
+  border: 1px solid black;
+	text-align: center;
+	color: black;
+	font-size: 16px;
+	border-radius: 6px;
+}
+
+.post {
+	float: left;
+	width: 10%;
+	height: 50%;
+	margin: 0 auto;
+	position: relative;
+	text-align: center;
+	border-style: solid;
+}
+.post-container {
+	margin:auto;
+	max-width: 1000px;
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+}

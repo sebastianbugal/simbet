@@ -9,7 +9,7 @@
 	margin: 4px;
 }
 .post{
-	background-color:#DDDDDD;
+	background-color:#CECECE;
 	padding: 6px;
 	margin-left: 6px;
 }
@@ -26,7 +26,7 @@
 	position: fixed;
 	border: 2px solid black;
 	display: none;
-	background-color: #EEEEEE;
+	background-color: #CECECE;
 	top: 50%;
    left: 50%;
 	padding: 4px;
@@ -64,4 +64,14 @@
 }
 .replyPreview{
 	display:none;
+}
+
+.forumButtons {
+	margin: 2px;
+	background-color: #D3D3D3;
+  border: 1px solid black;
+	text-align: center;
+	color: black;
+	font-size: 16px;
+	border-radius: 6px;
 }
