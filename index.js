@@ -556,40 +556,66 @@ io.on('connection', socket=>{
   }
 
 
-  io.sockets.emit('fen',chess.fen());
-  console.log(socket.id)
+  socket.on('join_room',data=>{
+  socket.join('chess_room');
+    console.log('user',socket.id,'joined')
+  })
+  socket.on('start',function(){
+    console.log('working')
+    
+  })
+  // io.sockets.to('chess_room').on('start',function(){
+  //   chess = new Chess()
+  //   console.log('working')
+  // })
+  // io.sockets.emit('fen',chess.fen());
   socket.on('drag_start',data=>{
     
     if(chess.game_over()){
-      socket.emit('game_over',true);
+      socket.to('chess_room').emit('game_over',true);
     }
-    console.log(data)
+    
     if((chess.turn()==='w'&& data.search(/^b/) !== -1 && wid==socket.id)){
-      socket.emit('side',true);
+      console.log(true);
+      socket.to('chess_room').emit('side',true);
     }
     else{
-      socket.emit('side',true)
+   
+
+      socket.to('chess_room').emit('side',true)
     }
     if((chess.turn() === 'b' && data.search(/^w/) !== -1 && bid==socket.id)){
-      socket.emit('side',true)
+      socket.to('chess_room').emit('side',true)
+      console.log(false);
+
        }
     else{
-      socket.emit('side',true);
+      socket.to('chess_room').emit('side',true);
+     
+
     }
-    })
+      })
 
   socket.on('move', data=>{
-    move=chess.move(data);
+    
     var status = ''
     var moveColor = 'White'
-
-    if (move === null){
-      console.log('sdsd')
-    }
-    if (chess.turn() === 'b') {
+    console.log(socket.id, wid)
+    if (chess.turn() === 'b' && socket.id==bid){
+      console.log(bid)
       moveColor = 'Black'
+      chess.move(data);
+
     }
-  
+    else if(chess.turn() === 'w' && socket.id==wid){
+      console.log(wid)
+      moveColor = 'white'
+      chess.move(data);
+
+
+    }
+    io.to('chess_room').emit('fen',chess.fen());
+
     // checkmate?
     if (chess.in_checkmate()) {
       status = 'Game over, ' + moveColor + ' is in checkmate.'
@@ -609,7 +635,8 @@ io.on('connection', socket=>{
         status += ', ' + moveColor + ' is in check'
       }
     }
-    io.sockets.emit('fen',chess.fen());
+    console.log(chess.fen())
+    socket.to('chess_room').emit('fen',chess.fen());
   })
   
 }); 
