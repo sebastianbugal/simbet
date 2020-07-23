@@ -60,12 +60,12 @@ background: rgb(130, 224, 255);
   
 <form  class="form-container">
 <body class='bd'>
-  <button class='close_chat ' onclick="closeForm()">close</button>
+  <button class='close_chat' type='button' onclick='closeForm()'>close</button>
   <ul style="margin-top:50px; margin-bottom:50px" id="messages"></ul>
 </body>
 </form>
-<form action="/" method="POST" id="chatForm" class='frm'>
-  <input class='frm_in' id="txt" autocomplete="off" autofocus="on" oninput="isTyping()" placeholder="type your message here..." /><button class='frm_btn'>Send</button>
+<form  id="chatForm" class='frm'>
+  <input class='frm_in' id="txt" autocomplete="off" autofocus="on" placeholder="type your message here..." /><button type='button' class='frm_btn'>Send</button>
 </form>
 </div>
 <button id='open_chat' class="open_chat" onclick="openForm()">Open Chat</button>

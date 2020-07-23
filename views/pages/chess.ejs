@@ -1,5 +1,7 @@
 <html>
 <head>
+  <% include ../partials/header.ejs %>
+
 <!--  Including the chessboardjs files:-->
 <link rel="stylesheet" href="css/chessboard-1.0.0.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -11,6 +13,7 @@
   
   </head>
 <body>
+  <div>
   <p id='u1'><p></p>
   <div id="myBoard" style="width: 400px"></div>
   <p id='u2'><p></p>
@@ -19,11 +22,12 @@
   <button id='join'>Join Room</button>
   <button id='reset'>reset</button>
   
-  <% include ../partials/chat.ejs %>
+</div>
 
   
   <!-- <button id='start'>Start Game</button> -->
 
 <script src = "socket.io/socket.io.js"></script>
 <script src="./js/script.js"></script>
+<% include ../partials/chat.ejs %>
 </html>
