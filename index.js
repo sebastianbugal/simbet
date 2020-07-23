@@ -4,7 +4,7 @@ const path = require('path')
 const ses = require('express-session')
 // const http=require('http').Server(express);
 const { Chess } = require('./public/js/chess.js')
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 4000
 const { Pool } = require('pg');
 
 const db = new Pool({
@@ -549,7 +549,7 @@ app.post('/updateAdmin', (req, res)=> {
     res.render('pages/adminDashboard', results);
   })
 })
-const chess = new Chess()
+var chess = new Chess()
 var players=[];
 var bid;
 var wid;
@@ -570,27 +570,31 @@ io.on('connection', socket=>{
   });
 
   //chatt
-  if(wid!=null){
-    bid=socket.id
-  }
-  else{
-    wid=socket.id
-  }
+
   socket.on('reset',data=>{
-    chess=new chess();
+    chess=new Chess();
     socket.to('chess_room').emit('fen',chess.fen());
+    wid=null
+    bid=null  
   })
   socket.on('join_room',data=>{
+    if(wid==null){
+      wid=socket.id
+    }
+    else if(bid==null){
+      bid=socket.id
+    }
   socket.join('chess_room');
     console.log('user',socket.id,'joined')
     console.log(wid,bid)
     var side;
+    console.log('wid is: ',wid,'id gotten: ',socket.id);
     if(wid==socket.id){
-      side='white';
-    }
-    else{
-      side='black'
-    }
+      console.log('wid is: ',wid,'id gotten: ',socket.id);
+      side='white';}
+    else if(bid==socket.id){
+      console.log('bdi is: ',bid,'id gotten: ',socket.id);
+      side='black'}
 
     var data=[req.session.username,side]
     io.to('chess_room').emit('user_name',data)
