@@ -7,6 +7,9 @@ const { Chess } = require('./public/js/chess.js')
 const PORT = process.env.PORT || 1000
 const { Pool } = require('pg');
 const Twitter = require('twitter');
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
@@ -33,6 +36,7 @@ app.use(session ({
   saveUninitialized: false
 }))
 const sharedsession = require("express-socket.io-session");
+const { url } = require('inspector');
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use(express.static(path.join(__dirname, 'public')))
@@ -65,16 +69,19 @@ app.get('/admin', (req, res) => {
   }
 });
 
-app.get('/leaderBoards', (req, res) => {
-  var query = `SELECT * FROM users ORDER BY chess_elo DESC`;
-  db.query(query, (err, result) => {
-    if(err){
-      res.send(error);
-    }
-    var scores = {'rows':result.rows};
-    res.render('pages/leaderBoards', scores);
-  })
-
+app.get('/leaderBoards', (req, res) => {   // will get rate limited if more than 450 refreshes every 15 mins
+  t_client.get('search/tweets', {q: '#SplatForum', count:'5', include_entities:'true'}, function(error, tweets, response) {
+    if(error) throw error;
+    var tweets = {'statuses':tweets.statuses};
+    var query = `SELECT * FROM users ORDER BY chess_elo DESC`;
+    db.query(query, (err, result) => {
+      if(err){
+        res.send(error);
+      }
+      var data = {'rows':result.rows, tweets};
+      res.render('pages/leaderBoards', data);
+    })
+  });
 })
 
 app.get('/chat',(req,res)=>{
