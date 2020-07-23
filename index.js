@@ -6,6 +6,7 @@ const session = require('express-session')
 const { Chess } = require('./public/js/chess.js')
 const PORT = process.env.PORT || 1000
 const { Pool } = require('pg');
+const Twitter = require('twitter');
 
 const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
@@ -19,6 +20,12 @@ var bodyParser = require('body-parser');
 const app = express();
 var server = http.createServer(app);
 const io = require('socket.io').listen(server);
+
+var t_client = new Twitter({
+  consumer_key: process.env.TWITTER_API_KEY,
+  consumer_secret: process.env.TWITTER_API_SECRET_KEY,
+  bearer_token: process.env.TWITTER_BEARER_TOKEN
+});
 
 app.use(session ({
   secret: 'splatsplatsplat',

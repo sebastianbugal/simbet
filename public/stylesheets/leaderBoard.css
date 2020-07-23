@@ -2,8 +2,9 @@
     border-radius: 1px;
     border: 3px solid black;
     text-align: center;
-    width:70%;
+    width:60%;
     border-collapse: collapse;
+    display: inline-table;
 }
 
 .chess_leaderboard th {
@@ -25,9 +26,5 @@
     align-content: center;
 } */
 .embedded_twitter {
-    position: absolute;
-    height: 100px;
-    width: 50px;
-    right: 40px;
-    top: 75px;
+    display: inline-block;
 }
