@@ -127,7 +127,6 @@ app.get('/user_add', (req,res)=>{
   else{
     res.redirect('login');
   }
-
 })
 
 app.post('/add_user', (req,res)=>{
