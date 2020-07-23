@@ -4,13 +4,14 @@
 
 <!--  Including the chessboardjs files:-->
 <link rel="stylesheet" href="css/chessboard-1.0.0.css">
+<link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="./js/chess.js"></script>
 <script src="./js/chessboard-1.0.0.js"></script>
-    
+
 
 <!--  Including jQuery, another tool chessboardjs uses:-->
-  
+
   </head>
   <div>
 <body>
@@ -18,15 +19,15 @@
   <div id="myBoard" style="width: 400px"></div>
   <p id='u2'><p></p>
   </body>
-  
+
   <button id='join'>Join Room</button>
   <button id='reset'>reset</button>
-  
+
 </div>
-  
+
+
   <!-- <button id='start'>Start Game</button> -->
 <% include ../partials/chat.ejs %>
-
 <script src = "socket.io/socket.io.js"></script>
 <script src="./js/script.js"></script>
 </html>

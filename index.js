@@ -22,7 +22,7 @@ const io = require('socket.io').listen(server);
 var session=ses ({
   secret: 'splatsplatsplat',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: true
 })
 app.use(session)
 io.use(function (socket, next) {
@@ -71,30 +71,37 @@ app.get('/chat',(req,res)=>{
 // catalog
 // Catalog will now only show posts where the user is within the accessible forum
 var refresh_catalog = (req, res) => {
-
-	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1
-	AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
-	db.query(threadQuery, (error, result) => {
-		if(error){ res.send(error); return; }
-		let data = {'rows':result.rows};
-		if(req.session.loggedin)
-			data['username'] = req.session.username;
-		else
-			data['username'] = "";
-		console.log(result.rows);
-		res.render('pages/catalog.ejs', data);
-	});
+  if(req.session.loggedin){
+  	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1
+  	AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
+  	db.query(threadQuery, (error, result) => {
+  		if(error){ res.send(error); return; }
+  		let data = {'rows':result.rows};
+  		if(req.session.loggedin)
+  			data['username'] = req.session.username;
+  		else
+  			data['username'] = "";
+  		console.log(result.rows);
+  		res.render('pages/catalog.ejs', data);
+  	});
+  } else {
+    res.redirect('login');
+  }
 }
 app.all('/catalog', bodyParser.urlencoded({extended:false}), refresh_catalog);
 
 var refresh_catalog_personal = (req, res) => {
-	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[]))
-	AND p_thread_id = -1 AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
-	db.query(threadQuery, (error, result) => {
-		if(error){ res.send(error); return; }
-		let data = {'rows':result.rows};
-		res.render('pages/userView', data);
-	});
+  if(req.session.loggedin){
+  	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[]))
+  	AND p_thread_id = -1 AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
+  	db.query(threadQuery, (error, result) => {
+  		if(error){ res.send(error); return; }
+  		let data = {'rows':result.rows};
+  		res.render('pages/userView', data);
+  	});
+  } else {
+    res.redirect('login');
+  }
 }
 
 app.all('/userView', bodyParser.urlencoded({extended:false}), refresh_catalog_personal);
@@ -263,24 +270,24 @@ app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
 
 app.get('/thread/:id', (req,res)=>{
   if(req.session.loggedin){
-  let data = {};
-  let id = req.params.id;
-  const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
-  db.query(query, (error, result) => {
-    if(error){ res.send(error); return; }
-    data['posts'] =  result.rows;
-    data['username'] = "";
-    if(req.session.loggedin == true){
-      data['username'] = req.session.username;
-      data['role'] = req.session.role;
-    }
-    //console.log(result.rows);
-    res.render('pages/thread.ejs', data);
-  });
-}
-else{
-  res.redirect('login');
-}
+    let data = {};
+    let id = req.params.id;
+    const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
+    db.query(query, (error, result) => {
+      if(error){ res.send(error); return; }
+      data['posts'] =  result.rows;
+      data['username'] = "";
+      if(req.session.loggedin == true){
+        data['username'] = req.session.username;
+        data['role'] = req.session.role;
+      }
+      //console.log(result.rows);
+      res.render('pages/thread.ejs', data);
+    });
+  }
+  else{
+    res.redirect('/login');
+  }
 });
 
 
@@ -574,7 +581,7 @@ io.on('connection', socket=>{
     chess=new Chess();
     socket.to('chess_room').emit('fen',chess.fen());
     wid=null
-    bid=null  
+    bid=null
   })
   socket.on('join_room',data=>{
     if(wid==null){
@@ -604,7 +611,7 @@ io.on('connection', socket=>{
     console.log('working')
 
   })
-  
+
   // io.sockets.to('chess_room').on('start',function(){
   //   chess = new Chess()
   //   console.log('working')

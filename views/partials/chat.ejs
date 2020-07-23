@@ -31,23 +31,27 @@ position:fixed;
 bottom:0;
 padding:10px;
 position:fixed;
-width: 375px; 
-background: rgb(130, 224, 255); 
-border: none; 
+width: 375px;
+color: black;
+font-weight: bold;
+background: #0197F6;
+border: none;
 
 }
 .close_chat{
 position:fixed;
 width: 355px;
-padding: 10px; 
+padding: 10px;
 border:none;
-background: rgb(130, 224, 255); 
+color: black;
+font-weight: bold;
+background: #0197F6;
 }
       /* * { margin: 0; padding: 0; box-sizing: border-box; } */
       .bd { font: 13px Helvetica, Arial; }
       .frm { padding: 3px; position: fixed; bottom: 0; width: 100%;  border-top-width: 1px;}
       .frm_in {bottom:10px;width:290px; border-style: solid; border-width: 1px; padding: 10px; margin-right: .5%; }
-      .frm_btn { bottom:10px;width: 64px; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      .frm_btn { bottom:10px;width: 64px; background: #0197F6; color: black; font-weight:bold; border: none; padding: 10px; }
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
@@ -56,8 +60,8 @@ background: rgb(130, 224, 255);
   <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 </head>
 
-<div class="chat-popup" id="myForm" style='display:none;'> 
-  
+<div class="chat-popup" id="myForm" style='display:none;'>
+
 <form  class="form-container">
 <body class='bd'>
   <button class='close_chat' type='button' onclick='closeForm()'>close</button>
@@ -71,7 +75,7 @@ background: rgb(130, 224, 255);
 <button id='open_chat' class="open_chat" onclick="openForm()">Open Chat</button>
 <script>
 var socket = io.connect( window.location.hostname );
-// var socket = io.connect( 'http://localhost:4000');
+//var socket = io.connect( 'http://localhost:4000');
 $('#chatForm').submit(function(e){
     e.preventDefault();
     if($('#txt').val()!=''){
