@@ -3,8 +3,8 @@
 console.log('color');
 
 var board = null
-// var socket = io.connect(window.location.hostname);
-  var socket = io.connect( 'http://localhost:4000');
+var socket = io.connect(window.location.hostname);
+// var socket = io.connect( 'http://localhost:4000');
 var color;
 var ublack;
 var uwhite;
