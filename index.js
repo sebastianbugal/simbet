@@ -24,17 +24,6 @@ const app = express();
 var server = http.createServer(app);
 const io = require('socket.io').listen(server);
 
-var t_client = new Twitter({
-  consumer_key: process.env.TWITTER_API_KEY,
-  consumer_secret: process.env.TWITTER_API_SECRET_KEY,
-  bearer_token: process.env.TWITTER_BEARER_TOKEN
-});
-
-app.use(session ({
-  secret: 'splatsplatsplat',
-  resave: false,
-  saveUninitialized: false
-}))
 const sharedsession = require("express-socket.io-session");
 const { url } = require('inspector');
 var session=ses ({
@@ -58,7 +47,11 @@ app.use(function (req, res, next) {
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
-
+var t_client = new Twitter({
+  consumer_key: process.env.TWITTER_API_KEY,
+  consumer_secret: process.env.TWITTER_API_SECRET_KEY,
+  bearer_token: process.env.TWITTER_BEARER_TOKEN
+});
 
 app.get('/', (req, res) => res.render('pages/login'))
 
