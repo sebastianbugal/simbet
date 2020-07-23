@@ -58,7 +58,17 @@ app.get('/admin', (req, res) => {
   }
 });
 
-app.get('/leaderBoards', (req, res) => res.render('pages/leaderBoards'))
+app.get('/leaderBoards', (req, res) => {
+  var query = `SELECT * FROM users ORDER BY chess_elo DESC`;
+  db.query(query, (err, result) => {
+    if(err){
+      res.send(error);
+    }
+    var scores = {'rows':result.rows};
+    res.render('pages/leaderBoards', scores);
+  })
+
+})
 
 app.get('/chat',(req,res)=>{
   res.render('pages/chat');

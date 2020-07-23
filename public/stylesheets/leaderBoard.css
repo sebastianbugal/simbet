@@ -1,0 +1,33 @@
+.chess_leaderboard {
+    border-radius: 1px;
+    border: 3px solid black;
+    text-align: center;
+    width:70%;
+    border-collapse: collapse;
+}
+
+.chess_leaderboard th {
+    background-color: blue;
+    color: white;
+    text-align:center;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.chess_leaderboard td {
+    padding: 3px 2px;
+    font-size: 16px;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+}
+/* 
+.chess_leaderboard_container {
+    align-content: center;
+} */
+.embedded_twitter {
+    position: absolute;
+    height: 100px;
+    width: 50px;
+    right: 40px;
+    top: 75px;
+}

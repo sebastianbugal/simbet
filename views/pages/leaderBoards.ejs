@@ -2,8 +2,7 @@
 <html>
 <head>
   <title>LeaderBoards</title>
-  <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
-  <link rel="stylesheet" type="text/css" href="stylesheets/forum.css">
+  <link rel="stylesheet" type="text/css" href="/stylesheets/leaderBoard.css">
   <% include ../partials/header.ejs %>
 </head>
 
@@ -14,11 +13,34 @@
     <%include ../partials/nav.ejs%>
   <%} %>
 
-  <div id="chess_leaderboard_container">
-    <table>
-      
+  <div class="leaderboard_container">
+    <table class="chess_leaderboard">
+      <tr>
+        <th>Rank</th>
+        <th>Username</th>
+        <th>Wins</th>
+        <th>Ties</th>
+        <th>Losses</th>
+        <th>Elo</th>
+      </tr>
+      <% var rank = 1; %>
+      <% rows.forEach(function(r) { %>
+        <tr>
+        <td><%= rank %></td>
+        <td><%= r.username %></td>
+        <td><%= r.wins %></td>
+        <td><%= r.ties %></td>
+        <td><%= r.losses %></td>
+        <td><%= r.chess_elo %></td>
+      </tr>
+      <% rank++;}); %>
+
     </table>
+
+  <div class="embedded_twitter">
+    <a>Twitter feed will go here!</a>
   </div>
+</div>
 
   
 </body>
