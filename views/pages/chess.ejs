@@ -12,8 +12,8 @@
 <!--  Including jQuery, another tool chessboardjs uses:-->
   
   </head>
-<body>
   <div>
+<body>
   <p id='u1'><p></p>
   <div id="myBoard" style="width: 400px"></div>
   <p id='u2'><p></p>
@@ -23,11 +23,10 @@
   <button id='reset'>reset</button>
   
 </div>
-
   
   <!-- <button id='start'>Start Game</button> -->
+<% include ../partials/chat.ejs %>
 
 <script src = "socket.io/socket.io.js"></script>
 <script src="./js/script.js"></script>
-<% include ../partials/chat.ejs %>
 </html>
