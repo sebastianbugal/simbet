@@ -26,7 +26,8 @@
 				<b><%=r.t_subject%></b>:
 				<%=r.p_text%>
 				<span style="float:right">
-					by: <b><%=r.p_username%></b>
+					by: <b><span class="username"><%=r.p_username%></span></b>
+          in: <b><span class="forum"><%=r.t_forum%></span></b>
 					<b>R:</b><%=r.t_post_num%>
 					<b>U:</b><%=r.t_user_num%>
 				</span>
@@ -34,5 +35,8 @@
 		</a>
 	<%});%>
   </div>
+
+
 </body>
+<% include ../partials/chat.ejs %>
 </html>

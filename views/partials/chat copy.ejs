@@ -1,0 +1,99 @@
+
+<head>
+    <style>
+
+/* Button used to open the chat form - fixed at the bottom of the page */
+.open-button {
+  background-color: #555;
+  color: white;
+  padding: 16px 20px;
+  border: none;
+  cursor: pointer;
+  opacity: 0.8;
+  position: fixed;
+  bottom: 23px;
+  right: 28px;
+  width: 280px;
+}
+.form-container {
+  width: 375px;
+  height:400px;
+  padding: 10px;
+  padding-bottom: 50px;
+  background-color: white;
+  overflow:scroll;
+}
+
+.open_chat{
+  bottom:0;
+  padding:10px;
+  position:fixed;
+  width: 375px; 
+  background: rgb(130, 224, 255); 
+  border: none; 
+
+}
+.close_chat{
+  position:fixed;
+  width: 355px;
+  background: rgb(130, 224, 255); 
+}
+        /* * { margin: 0; padding: 0; box-sizing: border-box; } */
+        .bd { font: 13px Helvetica, Arial; }
+        .frm { padding: 3px; position: fixed; bottom: 0; width: 100%;  border-top-width: 1px;}
+        .frm_in {width:290px; border-style: solid; border-width: 1px; padding: 10px; margin-right: .5%; }
+        .frm_btn { width: 64px; background: rgb(130, 224, 255); border: none; padding: 10px; }
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages li { padding: 5px 10px; }
+        #messages li:nth-child(odd) { background: #eee; }
+    </style>
+    <script src="../../socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  </head>
+
+  <div class="chat-popup" id="myForm" style='display:none;'> 
+    
+  <form  class="form-container frm">
+  <body class='bd'>
+    <button class='close_chat frm_btn' onclick="closeForm()">close</button>
+    <ul style="margin-top:50px; margin-bottom:50px" id="messages"></ul>
+   
+  </body>
+  </form>
+  <form action="/" method="POST" id="chatForm frm">
+    <input class='frm_in' id="txt" autocomplete="off" autofocus="on" oninput="isTyping()" placeholder="type your message here..." /><button class='frm_btn'>Send</button>
+  </form>
+</div>
+<button id='open_chat' class="open_chat" onclick="openForm()">Open Chat</button>
+<script>
+  // var socket = io.connect( window.location.hostname );
+  var socket = io.connect( 'http://localhost:4000');
+  $('#chatForm').submit(function(e){
+      e.preventDefault();
+      if($('#txt').val()!=''){
+        socket.emit('chat_message', $('#txt').val());
+        $('#txt').val('');
+        return false;
+      }
+  });
+  // append the chat text message
+  socket.on('chat_message', function(msg){
+      $('#messages').append($('<li>').html(msg));
+  });
+  // append text if someone is online
+  socket.on('is_online', function(username) {
+      $('#messages').append($('<li>').html(username));
+  });
+  // ask username
+  socket.emit('username', null);
+
+  function openForm() {
+    document.getElementById("myForm").style.display = "block";
+    document.getElementById('open_chat').style.display='none';
+  }
+
+  function closeForm() {
+    document.getElementById("myForm").style.display = "none";
+    document.getElementById('open_chat').style.display='block';
+  }
+</script>

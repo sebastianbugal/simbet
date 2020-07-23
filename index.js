@@ -1,10 +1,10 @@
 const express = require('express'),
   http = require('http');
 const path = require('path')
-const session = require('express-session')
+const ses = require('express-session')
 // const http=require('http').Server(express);
 const { Chess } = require('./public/js/chess.js')
-const PORT = process.env.PORT || 1000
+const PORT = process.env.PORT || 4000
 const { Pool } = require('pg');
 const Twitter = require('twitter');
 if (process.env.NODE_ENV !== 'production') {
@@ -37,6 +37,16 @@ app.use(session ({
 }))
 const sharedsession = require("express-socket.io-session");
 const { url } = require('inspector');
+var session=ses ({
+  secret: 'splatsplatsplat',
+  resave: false,
+  saveUninitialized: true
+})
+app.use(session)
+io.use(function (socket, next) {
+  session(socket.request, socket.request.res, next);
+});
+// const sharedsession = require("express-socket.io-session");
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use(express.static(path.join(__dirname, 'public')))
@@ -85,35 +95,46 @@ app.get('/leaderBoards', (req, res) => {   // will get rate limited if more than
 })
 
 app.get('/chat',(req,res)=>{
-  res.render('pages/chat');
+  if(req.session.loggedin){
+  res.render('pages/chat');}
+  else{
+    res.redirect('login');
+  }
 })
 // catalog
 // Catalog will now only show posts where the user is within the accessible forum
 var refresh_catalog = (req, res) => {
-
-	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1
-	AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
-	db.query(threadQuery, (error, result) => {
-		if(error){ res.send(error); return; }
-		let data = {'rows':result.rows};
-		if(req.session.loggedin)
-			data['username'] = req.session.username;
-		else
-			data['username'] = "";
-		console.log(result.rows);
-		res.render('pages/catalog.ejs', data);
-	});
+  if(req.session.loggedin){
+  	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1
+  	AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
+  	db.query(threadQuery, (error, result) => {
+  		if(error){ res.send(error); return; }
+  		let data = {'rows':result.rows};
+  		if(req.session.loggedin)
+  			data['username'] = req.session.username;
+  		else
+  			data['username'] = "";
+  		console.log(result.rows);
+  		res.render('pages/catalog.ejs', data);
+  	});
+  } else {
+    res.redirect('login');
+  }
 }
 app.all('/catalog', bodyParser.urlencoded({extended:false}), refresh_catalog);
 
 var refresh_catalog_personal = (req, res) => {
-	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[]))
-	AND p_thread_id = -1 AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
-	db.query(threadQuery, (error, result) => {
-		if(error){ res.send(error); return; }
-		let data = {'rows':result.rows};
-		res.render('pages/userView', data);
-	});
+  if(req.session.loggedin){
+  	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[]))
+  	AND p_thread_id = -1 AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
+  	db.query(threadQuery, (error, result) => {
+  		if(error){ res.send(error); return; }
+  		let data = {'rows':result.rows};
+  		res.render('pages/userView', data);
+  	});
+  } else {
+    res.redirect('login');
+  }
 }
 
 app.all('/userView', bodyParser.urlencoded({extended:false}), refresh_catalog_personal);
@@ -125,10 +146,11 @@ app.get('/userView', (req,res) =>{
     var results = {'username': req.session.username};
     res.render('pages/userView',results)}
   else{
-    res.render('pages/noAccess.ejs')
+    res.redirect('login');
   }
 })
 app.get('/user_add', (req,res)=>{
+  if(req.session.loggedin){
     query=`SELECT following FROM users WHERE username='${req.session.username}'`
     db.query(query, (err,result) => {
       if(err){
@@ -141,8 +163,10 @@ app.get('/user_add', (req,res)=>{
         res.render('pages/search',fol)
       }
     })
-
-
+  }
+  else{
+    res.redirect('login');
+  }
 })
 
 app.post('/add_user', (req,res)=>{
@@ -278,20 +302,25 @@ app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
 });
 
 app.get('/thread/:id', (req,res)=>{
-  let data = {};
-  let id = req.params.id;
-  const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
-  db.query(query, (error, result) => {
-    if(error){ res.send(error); return; }
-    data['posts'] =  result.rows;
-    data['username'] = "";
-    if(req.session.loggedin == true){
-      data['username'] = req.session.username;
-      data['role'] = req.session.role;
-    }
-    //console.log(result.rows);
-    res.render('pages/thread.ejs', data);
-  });
+  if(req.session.loggedin){
+    let data = {};
+    let id = req.params.id;
+    const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
+    db.query(query, (error, result) => {
+      if(error){ res.send(error); return; }
+      data['posts'] =  result.rows;
+      data['username'] = "";
+      if(req.session.loggedin == true){
+        data['username'] = req.session.username;
+        data['role'] = req.session.role;
+      }
+      //console.log(result.rows);
+      res.render('pages/thread.ejs', data);
+    });
+  }
+  else{
+    res.redirect('/login');
+  }
 });
 
 
@@ -524,18 +553,15 @@ app.post('/updateAdmin', (req, res)=> {
     res.render('pages/adminDashboard', results);
   })
 })
-
-
-
-const chess = new Chess()
+var chess = new Chess()
 var players=[];
 var bid;
 var wid;
 io.on('connection', socket=>{
+  var req = socket.request;
   //chat
-
   socket.on('username', function(username) {
-    socket.username = username;
+    socket.username = req.session.username;
     io.emit('is_online', '🔵 <i>' + socket.username + ' join the chat..</i>');
   });
 
@@ -549,22 +575,41 @@ io.on('connection', socket=>{
 
   //chatt
 
-  if(wid!=null){
-    bid=socket.id
-  }
-  else{
-    wid=socket.id
-  }
-
-
+  socket.on('reset',data=>{
+    chess=new Chess();
+    socket.to('chess_room').emit('fen',chess.fen());
+    wid=null
+    bid=null
+  })
   socket.on('join_room',data=>{
+    if(wid==null){
+      wid=socket.id
+    }
+    else if(bid==null){
+      bid=socket.id
+    }
   socket.join('chess_room');
     console.log('user',socket.id,'joined')
+    console.log(wid,bid)
+    var side;
+    console.log('wid is: ',wid,'id gotten: ',socket.id);
+    if(wid==socket.id){
+      console.log('wid is: ',wid,'id gotten: ',socket.id);
+      side='white';}
+    else if(bid==socket.id){
+      console.log('bdi is: ',bid,'id gotten: ',socket.id);
+      side='black'}
+
+    var data=[req.session.username,side]
+    io.to('chess_room').emit('user_name',data)
+    console.log(data)
+
   })
   socket.on('start',function(){
     console.log('working')
 
   })
+
   // io.sockets.to('chess_room').on('start',function(){
   //   chess = new Chess()
   //   console.log('working')
@@ -644,21 +689,21 @@ io.on('connection', socket=>{
 
 
 app.get('/games',(req,res)=>{
-  res.render('pages/games');
+  if(req.session.loggedin){
+  res.render('pages/games');}
+  else{
+    res.redirect('login');
+  }
 });
 
 app.get('/chess', (req,res)=>{
+  if(req.session.loggedin){
   res.render('pages/chess')
+  }
+  else{
+    res.redirect('login');
+  }
 })
-
-app.get('/games',(req,res)=>{
-  res.render('pages/games');
-});
-
-app.get('/chess', (req,res)=>{
-  res.render('pages/chess')
-})
-
 app.get('/logout',function(req,res){
     req.session.destroy((err) => {
         if(err){
