@@ -9,12 +9,7 @@ const { Pool } = require('pg');
 
 const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	//connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
-  user: 'postgres',
-  host: 'localhost',
-  database: 'postgres',
-  password: 'power',
-  port: 5432,
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
 })
 var fen;
 const fetch = require('node-fetch');
