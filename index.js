@@ -415,14 +415,13 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
     ip = ip.substr(7);
   }
   console.log("ip: " + ip);
-  let settings = {method:"Get"};
   const ipApiUrl = `http://ip-api.com/json/${ip}?fields=countryCode`;
-  fetch(ipApiUrl, settings)
+  fetch(ipApiUrl)
     .then((res) => res.json())
     .then((json) => {
       if(json['countryCode'])
         ipApiData['countryCode'] = json['countryCode'];
-      console.log(json['countryCode']);
+      console.log("fetched countryCode= " + json['countryCode']);
       console.log(ipApiUrl);
     });
   console.log("countryCode: " + ipApiData['countryCode']);
