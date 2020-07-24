@@ -291,7 +291,7 @@ app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
   let tSubject = req.body.tSubject;
   if(!tSubject){tSubject = ""};
   let tForum = req.body.tForum;
-  if(!tSubject){tForum = "main"};
+  if(!tForum){tForum = "main"};
   let pUsername = req.session.username;
   let pText = req.body.pText;
   if(!pText)
