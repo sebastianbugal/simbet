@@ -2,7 +2,7 @@
 <html>
 <head>
   <% include ../partials/header.ejs %>
-  <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
+  <!-- <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css"> -->
   <!-- <script>
     function num(){
 
@@ -13,26 +13,30 @@
 <body>
 
   <% include ../partials/nav.ejs %>
+  <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
+  <link rel="stylesheet" type="text/css" href="/stylesheets/forum.css">
+
   <div class="container">
   <div class="row">
   <form class="col-sm-4" action="/add_user" method="POST">
     <div class="registerForm">
       <input class="textBoxes" type="text" placeholder= "Username To Follow" name="searchVal" required><br/>
-      <input class="submitButtons" type="submit" name="searchSubmit" value="Follow User">
+      <input class="forumButtons" type="submit" name="searchSubmit" value="Follow User">
     </div>
   </form>
   <div class="col-sm-4">
     <h2>Followed Users:</h2><br/>
     <% fol.forEach(function(r) { %>
       <form action="/unfollow" method="POST">
-        <div style='	margin-bottom: 3px;'><%=r%>
-        <input class="submitButtons" style="margin-left:20px;" type="submit" name="a" value="Unfollow">
+        <div style=' font-size: 16px;	margin-bottom: 3px;'><%=r%>
+        <input class="forumButtons" style="margin-left:20px;" type="submit" name="a" value="Unfollow">
         <input type="hidden" name="unfollow" value="<%=r%>">
-      </div>
         </form>
+        </div>
   <% }); %>
   </div>
 </div>
 </div>
 </body>
+<% include ../partials/chat.ejs %>
 </html>

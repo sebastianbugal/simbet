@@ -4,12 +4,12 @@ const path = require('path')
 const ses = require('express-session')
 // const http=require('http').Server(express);
 const { Chess } = require('./public/js/chess.js')
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 3000
 const { Pool } = require('pg');
 
 const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost:5432'
 })
 var fen;
 const fetch = require('node-fetch');
@@ -22,7 +22,7 @@ const io = require('socket.io').listen(server);
 var session=ses ({
   secret: 'splatsplatsplat',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: true
 })
 app.use(session)
 io.use(function (socket, next) {
@@ -40,6 +40,31 @@ app.use(function (req, res, next) {
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
+const Twitter = require('twitter');
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
+var t_client = new Twitter({
+  consumer_key: process.env.TWITTER_API_KEY,
+  consumer_secret: process.env.TWITTER_API_SECRET_KEY,
+  bearer_token: process.env.TWITTER_BEARER_TOKEN
+});
+
+app.get('/leaderBoards', (req, res) => {   // will get rate limited if more than 450 refreshes every 15 mins
+  t_client.get('search/tweets', {q: '#SplatForum', count:'5', include_entities:'true'}, function(error, tweets, response) {
+    if(error) throw error;
+    var tweets = {'statuses':tweets.statuses};
+    var query = `SELECT * FROM users ORDER BY chess_elo DESC`;
+    db.query(query, (err, result) => {
+      if(err){
+        res.send(error);
+      }
+      var data = {'rows':result.rows, tweets};
+      res.render('pages/leaderBoards', data);
+    })
+  });
+})
 
 
 app.get('/', (req, res) => res.render('pages/login'))
@@ -78,7 +103,7 @@ app.all('/admin', (req, res) => {
 
 app.get('/chat',(req,res)=>{
   if(req.session.loggedin){
-  res.render('pages/chat');}
+  res.render('/userView');}
   else{
     res.redirect('login');
   }
@@ -86,30 +111,37 @@ app.get('/chat',(req,res)=>{
 // catalog
 // Catalog will now only show posts where the user is within the accessible forum
 var refresh_catalog = (req, res) => {
-
-	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1
-	AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
-	db.query(threadQuery, (error, result) => {
-		if(error){ res.send(error); return; }
-		let data = {'rows':result.rows};
-		if(req.session.loggedin)
-			data['username'] = req.session.username;
-		else
-			data['username'] = "";
-		console.log(result.rows);
-		res.render('pages/catalog.ejs', data);
-	});
+  if(req.session.loggedin){
+  	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1
+  	AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
+  	db.query(threadQuery, (error, result) => {
+  		if(error){ res.send(error); return; }
+  		let data = {'rows':result.rows};
+  		if(req.session.loggedin)
+  			data['username'] = req.session.username;
+  		else
+  			data['username'] = "";
+  		console.log(result.rows);
+  		res.render('pages/catalog.ejs', data);
+  	});
+  } else {
+    res.redirect('login');
+  }
 }
 app.all('/catalog', bodyParser.urlencoded({extended:false}), refresh_catalog);
 
 var refresh_catalog_personal = (req, res) => {
-	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[]))
-	AND p_thread_id = -1 AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
-	db.query(threadQuery, (error, result) => {
-		if(error){ res.send(error); return; }
-		let data = {'rows':result.rows};
-		res.render('pages/userView', data);
-	});
+  if(req.session.loggedin){
+  	let threadQuery = `SELECT * FROM Posts WHERE (p_username = any((select following from users where username='${req.session.username}')::text[]))
+  	AND p_thread_id = -1 AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
+  	db.query(threadQuery, (error, result) => {
+  		if(error){ res.send(error); return; }
+  		let data = {'rows':result.rows};
+  		res.render('pages/userView', data);
+  	});
+  } else {
+    res.redirect('login');
+  }
 }
 
 app.all('/userView', bodyParser.urlencoded({extended:false}), refresh_catalog_personal);
@@ -142,7 +174,6 @@ app.get('/user_add', (req,res)=>{
   else{
     res.redirect('login');
   }
-
 })
 
 app.post('/add_user', (req,res)=>{
@@ -279,24 +310,24 @@ app.post('/add-thread', bodyParser.urlencoded({extended:false}), (req, res)=>{
 
 app.get('/thread/:id', (req,res)=>{
   if(req.session.loggedin){
-  let data = {};
-  let id = req.params.id;
-  const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
-  db.query(query, (error, result) => {
-    if(error){ res.send(error); return; }
-    data['posts'] =  result.rows;
-    data['username'] = "";
-    if(req.session.loggedin == true){
-      data['username'] = req.session.username;
-      data['role'] = req.session.role;
-    }
-    //console.log(result.rows);
-    res.render('pages/thread.ejs', data);
-  });
-}
-else{
-  res.redirect('login');
-}
+    let data = {};
+    let id = req.params.id;
+    const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
+    db.query(query, (error, result) => {
+      if(error){ res.send(error); return; }
+      data['posts'] =  result.rows;
+      data['username'] = "";
+      if(req.session.loggedin == true){
+        data['username'] = req.session.username;
+        data['role'] = req.session.role;
+      }
+      //console.log(result.rows);
+      res.render('pages/thread.ejs', data);
+    });
+  }
+  else{
+    res.redirect('/login');
+  }
 });
 
 
@@ -487,43 +518,6 @@ app.post('/lockThread', (req, res)=> {
   })
 })
 
-// TODO will need to update the database if we want to implement this one
-app.post('/muteUser', (req, res)=> {
-  var username = req.body.username;
-  // db.query(`UPDATE User SET muted='t' WHERE username=${username}`, (err, result) => {
-  //   if(result.rowCount > 0) {
-  //     console.log(`User muted: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  //   else {
-  //     console.log(`Error muting user: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  // })
-  res.send("Database needs updating");
-})
-
-//TODO will need to update the database and add a check for banned usernames during login if we want to implement this one
-app.post('/banUser', (req, res)=> {
-  var username = req.body.username;
-  // db.query(`UPDATE User SET banned='t' WHERE username=${username}`, (err, result) => {
-  //   if(result.rowCount > 0) {
-  //     console.log(`User banned: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  //   else {
-  //     console.log(`Error banning user: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  // })
-  res.send("Database needs updating");
-})
-
-
 
 app.post('/deleteUser', bodyParser.urlencoded({extended:false}), (req, res)=> {
   var username = req.body.username;
@@ -575,7 +569,8 @@ app.all('/users', (req,res)=>{
   })
 });
 
-const chess = new Chess()
+var chess = new Chess()
+
 var players=[];
 var bid;
 var wid;
@@ -596,27 +591,31 @@ io.on('connection', socket=>{
   });
 
   //chatt
-  if(wid!=null){
-    bid=socket.id
-  }
-  else{
-    wid=socket.id
-  }
+
   socket.on('reset',data=>{
-    chess=new chess();
+    chess=new Chess();
     socket.to('chess_room').emit('fen',chess.fen());
+    wid=null
+    bid=null
   })
   socket.on('join_room',data=>{
+    if(wid==null){
+      wid=socket.id
+    }
+    else if(bid==null){
+      bid=socket.id
+    }
   socket.join('chess_room');
     console.log('user',socket.id,'joined')
     console.log(wid,bid)
     var side;
+    console.log('wid is: ',wid,'id gotten: ',socket.id);
     if(wid==socket.id){
-      side='white';
-    }
-    else{
-      side='black'
-    }
+      console.log('wid is: ',wid,'id gotten: ',socket.id);
+      side='white';}
+    else if(bid==socket.id){
+      console.log('bdi is: ',bid,'id gotten: ',socket.id);
+      side='black'}
 
     var data=[req.session.username,side]
     io.to('chess_room').emit('user_name',data)
@@ -627,7 +626,7 @@ io.on('connection', socket=>{
     console.log('working')
 
   })
-  
+
   // io.sockets.to('chess_room').on('start',function(){
   //   chess = new Chess()
   //   console.log('working')

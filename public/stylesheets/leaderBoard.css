@@ -1,0 +1,36 @@
+.chess_leaderboard {
+    border-radius: 1px;
+    border: 3px solid black;
+    text-align: center;
+    width:50%;
+    float:left;
+    border-collapse: collapse;
+}
+
+.chess_leaderboard th {
+    background-color: blue;
+    color: white;
+    text-align:center;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.chess_leaderboard td {
+    padding: 3px 2px;
+    font-size: 16px;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.tweet_hash {
+
+    width:fit-content;
+    height:fit-content;
+}
+
+.embedded_feed {
+    float:right;
+    height: 1000px;
+    width: 45%;
+    color: blue;
+}

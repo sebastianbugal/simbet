@@ -21,6 +21,12 @@ INSERT INTO Users(
 	'test', 'test'
 );
 
+--Insert admin for testing
+INSERT INTO Users(
+	username, password, role
+) VALUES(
+	'admin', 'root', 'a'
+);
 -- Table for private forums
 CREATE TABLE Forums(
 	f_name VARCHAR(18) PRIMARY KEY,
@@ -65,19 +71,13 @@ CREATE TABLE Reports(
 	r_rule VARCHAR(18),
 	r_post_id INT REFERENCES Posts(p_post_id),
 	r_username VARCHAR(18) REFERENCES Users(username)
-)
+);
 
 -- table for holding replies relationship between posts
 CREATE TABLE Replies(
 	parent_id SERIAL REFERENCES posts(p_post_id),
 	reply_id SERIAL REFERENCES posts(p_post_id)
 );
-
--- Select for catalog
-SELECT *
-FROM Posts
-WHERE p_thread_id = -1
-ORDER BY p_post_id DESC;
 
 
 -- post a thread function and return the new id
@@ -140,9 +140,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- reply to a thread function
-SELECT "post_reply"('${pThreadId}', '${pUsername}', '${pText}');
-
 -- update thread stats when a new post is posted in the thread
 UPDATE Threads
 SET
@@ -194,10 +191,3 @@ BEGIN
 	WHERE username = in_username;
 END;
 $$ LANGUAGE plpgsql;
-
--- call the delete post function
-SELECT "delete_post"(${pPostID});
-
-
--- load posts for a thread
-SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} ORDER BY p.p_post_id;

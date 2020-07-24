@@ -3,16 +3,22 @@
 console.log('color');
 
 var board = null
-// var socket = io.connect(window.location.hostname);
 var socket = io.connect(window.location.hostname);
-
+// var socket = io.connect( 'http://localhost:3000');
 var color;
+var ublack;
+var uwhite;
+
 // socket.on("col", function (data) {
 //     color=data;
 //     console.log(color);
 // });
 document.getElementById("join").addEventListener("click", function(){
   socket.emit('join_room', null);
+});
+document.getElementById("reset").addEventListener("click", function(){
+  socket.emit('reset', null);
+
 });
 // document.getElementById("start").addEventListener("click", function(){
 //   socket.emit('start', null);
@@ -53,6 +59,7 @@ function onDrop (source, target) {
   updateStatus()
 }
 
+
 // update the board position after the piece snap
 // for castling, en passant, pawn promotion
 function onSnapEnd () {
@@ -70,6 +77,19 @@ function updateStatus () {
 socket.on('fen',data=>{
     board.position(data);
 })
+socket.on('user_name',data=>{
+  console.log('working')
+  if(data[1]=='white'){
+    var wname=document.getElementById('u2')
+    wname.textContent=data[0];
+  }
+  else if(data[1]=='black'){
+    var bname=document.getElementById('u1')
+    bname.textContent=data[0];
+  }
+})
+
+
 
 console.log(color);
 
