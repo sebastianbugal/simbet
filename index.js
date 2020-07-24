@@ -74,7 +74,7 @@ app.get('/login', (req, res) => res.render('pages/login'))
 app.get('/admin', (req, res) => {
   // check for admin rights
   if(req.session.loggedin) {
-    if(req.session.admin) {
+    if(req.session.role == 'a') {
       res.render('pages/adminDashboard', {'results': -1})
     }
     else {
