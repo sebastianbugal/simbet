@@ -55,6 +55,7 @@
 	position: absolute;
 	background-color: white;
 	width: 80px;
+	z-index: 20;
 }
 .postMenuLink{
 	cursor: pointer;

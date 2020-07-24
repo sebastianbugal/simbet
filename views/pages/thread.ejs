@@ -93,12 +93,12 @@ var role = role;
 						<% } else { %>
 							<a class="postMenuLink" onclick="window.open('/report-post/<%=posts[i].p_post_id%>', 'reporting <%=posts[i].p_post_id%>', 'width=600px, height=600px, left=200px, top=200px')">report post</a>
 						<%}%>
-						<% if(role == 'j' || role == 'm' || role == 'd' || role == 'a') { %>
-							<a class="delete post"></a>
-							<a class="submit ban request"></a>
+						<% if(role == 'j' || role == 'm' || role == 'a') { %>
+							<a href="/admin" class="postMenuLink">delete post</a>
+							<!--<a class="postMenuLink">ban request</a>-->
 							<% if(role != 'j'){%>
-								<a class="ban user"></a>
-							<% }%>
+								<a href="/admin" class="postMenuLink">ban user</a>
+							<%}%>
 						<% } %>
 					</div>
 				</span>

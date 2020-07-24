@@ -46,11 +46,26 @@ app.get('/', (req, res) => res.render('pages/login'))
 
 app.get('/login', (req, res) => res.render('pages/login'))
 
-app.get('/admin', (req, res) => {
+app.all('/admin', (req, res) => {
   // check for admin rights
   if(req.session.loggedin) {
-    if(req.session.admin) {
-      res.render('pages/adminDashboard', {'results': -1})
+    if(req.session.role == 'm' || req.session.role == 'a') {
+      let data = {};
+      data['results'] = -1;
+      const query = `SELECT * FROM Reports r, Posts p WHERE r.r_post_id = p.p_post_id ORDER BY r.r_report_id ASC`;
+      db.query(query, (error, result) => {
+        if(error){res.send(error); return;}
+        data['reports'] =  result.rows;
+        res.render('pages/adminDashboard', data);
+      });
+      /*
+      const query2 = `SELECT * FROM Users`;
+      db.query(query2, (error, result) => {
+        if(error){res.send(error); return;}
+        data['users'] =  result.rows;
+        console.log(result.rows);
+      });
+      */
     }
     else {
       res.send("Access Denied");
@@ -360,8 +375,8 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
   //get ip
   let ipApiData = {};
   ipApiData['countryCode'] = "AX";
-  console.log("ip:" + req.connection.remoteAddress);
-  let ip = req.connection.remoteAddress;
+  console.log("ip: " + req.ip);
+  let ip = req.ip;
   let settings = {method:"Get"};
   const ipApiUrl = `http://ip-api.com/json/${ip}?fields=countryCode`;
   fetch(ipApiUrl, settings)
@@ -432,11 +447,13 @@ app.post('/registerForm', (req, res) => {
 // admin posts
 app.post('/deletePost', (req, res)=> {
   var pid = req.body.pid;
-  db.query(`DELETE FROM Posts WHERE p_post_id = ${pid}`, (err, result) => {
+  db.query(`SELECT FROM "delete_post"(${pid})`, (err, result) => {
     if(err){
       console.log("Invalid input")
       var results = {'results': -2};
-      return res.render('pages/adminDashboard', results);
+      res.redirect('/admin');
+      return;
+      //return res.render('pages/adminDashboard', results);
     }
     else if(result.rowCount > 0) {
       console.log(`Post removed: ${pid}`);
@@ -445,7 +462,8 @@ app.post('/deletePost', (req, res)=> {
       console.log(`Post not found: ${pid}`);
     }
     var results = {'results': result.rowCount};
-    res.render('pages/adminDashboard', results);
+    //res.render('pages/adminDashboard', results);
+    res.redirect('/admin');
   })
 })
 
@@ -464,7 +482,8 @@ app.post('/lockThread', (req, res)=> {
       console.log(`Error locking thread: ${pid}`);
     }
     var results = {'results': result.rowCount};
-    res.render('pages/adminDashboard', results);
+    //res.render('pages/adminDashboard', results);
+    res.redirect('/admin');
   })
 })
 
@@ -506,13 +525,13 @@ app.post('/banUser', (req, res)=> {
 
 
 
-app.post('/deleteUser', (req, res)=> {
+app.post('/deleteUser', bodyParser.urlencoded({extended:false}), (req, res)=> {
   var username = req.body.username;
-  db.query(`DELETE FROM Users WHERE username=${username}`, (err, result) => {
+  db.query(`SELECT FROM "delete_user"('${username}')`, (err, result) => {
     if(err){
       console.log("invalid input");
       var results = {'results': -2};
-      return res.render('pages/adminDashboard', results);
+      //return res.render('pages/adminDashboard', results);
     }
     else if(result.rowCount > 0) {
       console.log(`User deleted: ${username}`);
@@ -520,35 +539,42 @@ app.post('/deleteUser', (req, res)=> {
     else {
       console.log(`Error deleting user: ${username}`);
     }
-    var results = {'results': result.rowCount};
-    res.render('pages/adminDashboard', results);
+    //var results = {'results': result.rowCount};
+    //res.render('pages/adminDashboard', results);
+    res.redirect('/admin');
   })
 })
 
-app.post('/updateAdmin', (req, res)=> {
-  var username = req.body.username;
-  if(req.body.update_admin == "Add"){
-    var adminRights = 't';
-  }
-  else if(req.body.update_admin == "Remove"){
-    var adminRights = 'f';
-  }
-  db.query(`UPDATE Users SET admin='${adminRights}' WHERE username=${username}`, (err, result) => {
+app.post('/updateAdmin', bodyParser.urlencoded({extended:false}), (req, res)=> {
+  db.query(`UPDATE Users SET role='${req.body.role}' WHERE username='${req.body.username}'`, (err, result) => {
     if(err){
+      res.send("Invalid input");
       console.log("Invalid input");
       var results = {'results': -2};
-      return res.render('pages/adminDashboard', results);
+      return;
+      //return res.render('pages/adminDashboard', results);
     }
+    /*
     else if(result.rowCount > 0) {
-      console.log(`Admin rights updated: ${username}`);
+      console.log(`Role updated for: ${username}`);
     }
     else {
-      console.log(`Error updating admin rights: ${username}`);
+      console.log(`Error updating roles: ${username}`);
     }
-    var results = {'results': result.rowCount};
-    res.render('pages/adminDashboard', results);
+    //var results = {'results': result.rowCount};
+    //res.render('pages/adminDashboard', results);*/
+    res.redirect('/admin');
   })
 })
+
+
+app.all('/users', (req,res)=>{
+  db.query(`SELECT * FROM users`, (error, result)=>{
+    if(error){ res.send(error) };
+    res.render('pages/users.ejs', {'users': result.rows});
+  })
+});
+
 const chess = new Chess()
 var players=[];
 var bid;

@@ -52,7 +52,7 @@ CREATE TABLE Posts(
 	p_country_code CHAR(2) DEFAULT 'AX',
 	-- thread data
 	t_subject VARCHAR(120),
-	t_forum VARCHAR(18) REFERENCES Forums(f_name) DEFAULT 'main',
+	t_forum VARCHAR(18) DEFAULT 'main',
 	t_pinned BOOLEAN DEFAULT 'f',
 	t_active BOOLEAN DEFAULT 't',
 	t_bump_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -143,11 +143,6 @@ $$ LANGUAGE plpgsql;
 -- reply to a thread function
 SELECT "post_reply"('${pThreadId}', '${pUsername}', '${pText}');
 
-
-
--- see if user count needs to be updates
-SELECT EXISTS(SELECT 1 FROM Posts WHERE p_thread_id = '${pThreadId}');
-
 -- update thread stats when a new post is posted in the thread
 UPDATE Threads
 SET
@@ -158,10 +153,7 @@ WHERE
 thread_id = ${threadId};
 
 
--- select posts linked to a thread (op first) (no reply functionality yet)
-SELECT * FROM Posts p WHERE p.p_thread_id = ${id} OR p.p_post_id = ${id} ORDER BY p.p_post_id;
-
--- delete a post function (untested at the moment)
+-- delete a post function
 CREATE OR REPLACE FUNCTION delete_post(
 	in_p_post_id INT
 )
@@ -169,16 +161,39 @@ RETURNS VOID AS $$
 DECLARE found_thread_id INT;
 BEGIN
 	--get thread_id
-	SELECT p_thread_id WHERE p_post_id = in_p_post_id INTO found_thread_id;
+	SELECT p_thread_id FROM Posts WHERE p_post_id = in_p_post_id INTO found_thread_id;
 	-- change post number
 	UPDATE posts
 	SET t_post_num = t_post_num - 1
-	WHERE p_post_id = in_p_post_id;
+	WHERE p_post_id = in_p_post_id
+	OR p_thread_id = found_thread_id;
+	-- remove replies
+	DELETE FROM Replies WHERE parent_id = in_p_post_id OR reply_id = in_p_post_id;
+	-- remove reports
+	DELETE FROM Reports WHERE r_post_id = in_p_post_id;
 	-- remove post
 	DELETE FROM Posts WHERE p_post_id = in_p_post_id;
 END;
 $$ LANGUAGE plpgsql;
 
+-- delete a user and all posts
+CREATE OR REPLACE FUNCTION delete_user(
+	in_username VARCHAR(18)
+)
+RETURNS VOID AS $$
+BEGIN
+	-- delete all posts
+	PERFORM "delete_post"(p.p_post_id)
+	FROM Posts p
+	WHERE p.p_username = in_username;
+	-- delete forum 
+	--DELETE FROM forums
+	--WHERE f_owner = in_username;
+	-- delete user
+	DELETE FROM Users
+	WHERE username = in_username;
+END;
+$$ LANGUAGE plpgsql;
 
 -- call the delete post function
 SELECT "delete_post"(${pPostID});
