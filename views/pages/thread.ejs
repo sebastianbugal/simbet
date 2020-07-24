@@ -13,7 +13,11 @@ var role = role;
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
-<% include ../partials/nav.ejs %>
+	<% if(session.role == ('a' || 'm')) { %>
+		<% include ../partials/adminNav.ejs %>
+	<% } else { %>
+		<%include ../partials/nav.ejs%>
+	<%} %>
 <hr>
 <div id="mainContainer">
 
@@ -135,7 +139,7 @@ var role = role;
 		[<a href="/catalog">Catalog</a>]
 		[<a href="#top">Top</a>]
 		[<a href="javascript:location.reload()">Update</a>]
-		[<input type="checkbox">Auto]
+		<!--[<input type="checkbox">Auto]-->
 		<span style="float: right">
 			<b>posts: </b><%=op.t_post_num%>
 			<!--<b>users: </b><%=op.t_user_num%>-->
