@@ -410,8 +410,11 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
   //get ip
   let ipApiData = {};
   ipApiData['countryCode'] = "AX";
-  console.log("ip: " + req.ip);
-  let ip = req.ip;
+  let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  if (ip.substr(0, 7) == "::ffff:") {
+    ip = ip.substr(7);
+  }
+  console.log("ip: " + ip);
   let settings = {method:"Get"};
   const ipApiUrl = `http://ip-api.com/json/${ip}?fields=countryCode`;
   fetch(ipApiUrl, settings)

@@ -31,7 +31,7 @@ INSERT INTO Users(
 CREATE TABLE Forums(
 	f_name VARCHAR(18) PRIMARY KEY,
 	f_password VARCHAR(30) NOT NULL,
-	f_owner VARCHAR(18) REFERENCES Users(username)
+	f_owner VARCHAR(18)
 );
 
 -- Creating "default" forum
