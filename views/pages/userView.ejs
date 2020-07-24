@@ -8,7 +8,7 @@
 </head>
 
 <body>
-  <% if(session.admin) { %>
+  <% if(session.role == ('a' || 'm')) { %>
     <% include ../partials/adminNav.ejs %>
   <% } else { %>
     <%include ../partials/nav.ejs%>

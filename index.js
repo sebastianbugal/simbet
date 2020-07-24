@@ -9,7 +9,7 @@ const { Pool } = require('pg');
 
 const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:School276@localhost/splat'
 })
 var fen;
 const fetch = require('node-fetch');
@@ -40,6 +40,31 @@ app.use(function (req, res, next) {
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
+const Twitter = require('twitter');
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
+var t_client = new Twitter({
+  consumer_key: process.env.TWITTER_API_KEY,
+  consumer_secret: process.env.TWITTER_API_SECRET_KEY,
+  bearer_token: process.env.TWITTER_BEARER_TOKEN
+});
+
+app.get('/leaderBoards', (req, res) => {   // will get rate limited if more than 450 refreshes every 15 mins
+  t_client.get('search/tweets', {q: '#SplatForum', count:'5', include_entities:'true'}, function(error, tweets, response) {
+    if(error) throw error;
+    var tweets = {'statuses':tweets.statuses};
+    var query = `SELECT * FROM users ORDER BY chess_elo DESC`;
+    db.query(query, (err, result) => {
+      if(err){
+        res.send(error);
+      }
+      var data = {'rows':result.rows, tweets};
+      res.render('pages/leaderBoards', data);
+    })
+  });
+})
 
 
 app.get('/', (req, res) => res.render('pages/login'))
@@ -49,7 +74,7 @@ app.get('/login', (req, res) => res.render('pages/login'))
 app.get('/admin', (req, res) => {
   // check for admin rights
   if(req.session.loggedin) {
-    if(req.session.admin) {
+    if(req.session.role == 'a') {
       res.render('pages/adminDashboard', {'results': -1})
     }
     else {
@@ -473,43 +498,6 @@ app.post('/lockThread', (req, res)=> {
     res.render('pages/adminDashboard', results);
   })
 })
-
-// TODO will need to update the database if we want to implement this one
-app.post('/muteUser', (req, res)=> {
-  var username = req.body.username;
-  // db.query(`UPDATE User SET muted='t' WHERE username=${username}`, (err, result) => {
-  //   if(result.rowCount > 0) {
-  //     console.log(`User muted: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  //   else {
-  //     console.log(`Error muting user: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  // })
-  res.send("Database needs updating");
-})
-
-//TODO will need to update the database and add a check for banned usernames during login if we want to implement this one
-app.post('/banUser', (req, res)=> {
-  var username = req.body.username;
-  // db.query(`UPDATE User SET banned='t' WHERE username=${username}`, (err, result) => {
-  //   if(result.rowCount > 0) {
-  //     console.log(`User banned: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  //   else {
-  //     console.log(`Error banning user: ${username}`);
-  //     var results = {'results': result.rowCount};
-  //     res.render('pages/adminDashboard', results);
-  //   }
-  // })
-  res.send("Database needs updating");
-})
-
 
 
 app.post('/deleteUser', (req, res)=> {

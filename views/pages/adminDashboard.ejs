@@ -10,8 +10,6 @@
 <body>
     <% include ../partials/adminNav.ejs %>
     <div id="header">
-        <button link="/admin">Actions</button>
-        <button>Messages</button>
     </div>
 
     </div>
@@ -31,15 +29,6 @@
             Lock Thread:
             <input type="number" name="pid" placeholder="thread id">
             <input type="submit" value="Lock Thread"> <br>
-        </form>
-        <form action="/muteUser" method="post">
-            Mute User:
-            <input type="number" name="uid" placeholder="user id">
-            <input type="submit" value="Mute User"> <br>
-        <form action="/banUser" method="post">
-            Ban User:
-            <input type="number" name="uid" placeholder="user id">
-            <input type="submit" value="Ban User"> <br>
         </form>
         <form action="/deleteUser" method="post">
             Delete User:

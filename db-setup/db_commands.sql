@@ -21,6 +21,12 @@ INSERT INTO Users(
 	'test', 'test'
 );
 
+--Insert admin for testing
+INSERT INTO Users(
+	username, password, role
+) VALUES(
+	'admin', 'root', 'a'
+);
 -- Table for private forums
 CREATE TABLE Forums(
 	f_name VARCHAR(18) PRIMARY KEY,
@@ -186,3 +192,6 @@ SELECT "delete_post"(${pPostID});
 
 -- load posts for a thread
 SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} ORDER BY p.p_post_id;
+
+-- grab users for chess leaderboard
+SELECT * FROM users ORDER BY chess_elo DESC;

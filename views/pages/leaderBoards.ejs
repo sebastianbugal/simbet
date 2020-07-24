@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LeaderBoards</title>
+  <link rel="stylesheet" type="text/css" href="/stylesheets/leaderBoard.css">
+  <% include ../partials/header.ejs %>
+</head>
+
+<body>
+  
+  <% if(session.role == ('a' || 'm')) { %>
+    <% include ../partials/adminNav.ejs %>
+  <% } else { %>
+    <%include ../partials/nav.ejs%>
+  <%} %>
+
+    <table class="chess_leaderboard">
+      <tr>
+        <th>Rank</th>
+        <th>Username</th>
+        <th>Wins</th>
+        <th>Ties</th>
+        <th>Losses</th>
+        <th>Elo</th>
+      </tr>
+      <% var rank = 1; %>
+      <% rows.forEach(function(r) { %>
+        <tr>
+        <td><%= rank %></td>
+        <td><%= r.username %></td>
+        <td><%= r.wins %></td>
+        <td><%= r.ties %></td>
+        <td><%= r.losses %></td>
+        <td><%= r.chess_elo %></td>
+      </tr>
+      <% rank++;}); %>
+      <div class="tweet_hash">
+        <a href="https://twitter.com/intent/tweet?button_hashtag=SplatForum&ref_src=twsrc%5Etfw" class="twitter-hashtag-button" data-show-count="false">Tweet #SplatForum</a>
+      </div>
+    </table>
+
+
+  <div class="embedded_feed">
+    <script id="twitter-wjs" type="text/javascript" async defer src="//platform.twitter.com/widgets.js">
+    </script>
+
+    <% tweets.statuses.forEach(function(r) { %>
+      <blockquote class="twitter-tweet">
+        <a href="https://twitter.com/<%= r.user.screen_name%>/status/<%= r.id_str%>">Tweets Loading...</a>
+      </blockquote>
+      
+    <%}); %>
+</div>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> 
+
+  
+</body>
+</html>
