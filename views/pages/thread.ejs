@@ -37,9 +37,9 @@ var role = role;
 					</td>
 				</tr>
 				<tr><td><textarea id="userTextarea" name="pText" form="newPostForm" placeholder="Comment"></textarea></td></tr>
-				<%//testing data-sitekey: 6LekFLEZAAAAALJ7jQOKGmsHaKJqDbFEARsaMQV6
-				//actual data-sitekey: 6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI%>
-				<tr><td><div class="g-recaptcha" data-theme="light" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div><td></tr>
+				<%//actual data-sitekey: 6LekFLEZAAAAALJ7jQOKGmsHaKJqDbFEARsaMQV6
+				//local data-sitekey: 6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI%>
+				<tr><td><div class="g-recaptcha" data-theme="light" data-sitekey="6LekFLEZAAAAALJ7jQOKGmsHaKJqDbFEARsaMQV6"></div><td></tr>
 				<%if(username != ""){%>
 					<tr><td><input class="forumButtons" style="float:right" value="Post" type="submit"></td></tr>
 				<%}%>
@@ -93,12 +93,12 @@ var role = role;
 						<% } else { %>
 							<a class="postMenuLink" onclick="window.open('/report-post/<%=posts[i].p_post_id%>', 'reporting <%=posts[i].p_post_id%>', 'width=600px, height=600px, left=200px, top=200px')">report post</a>
 						<%}%>
-						<% if(role == 'j' || role == 'm' || role == 'd' || role == 'a') { %>
-							<a class="delete post"></a>
-							<a class="submit ban request"></a>
+						<% if(role == 'j' || role == 'm' || role == 'a') { %>
+							<a href="/admin" class="postMenuLink">delete post</a>
+							<!--<a class="postMenuLink">ban request</a>-->
 							<% if(role != 'j'){%>
-								<a class="ban user"></a>
-							<% }%>
+								<a href="/admin" class="postMenuLink">ban user</a>
+							<%}%>
 						<% } %>
 					</div>
 				</span>

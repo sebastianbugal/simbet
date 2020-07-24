@@ -9,43 +9,100 @@
 
 <body>
     <% include ../partials/adminNav.ejs %>
+    <!---
     <div id="header">
     </div>
+-->
 
     </div>
     <div class="actions">
         <h1 id="title">Admin Dashboard</h1>
         <form action="/deletePost" method="post">
-            Delete post:
+            Delete post/thread:
             <input type="number" name="pid" placeholder="post id">
             <input type="submit" value="Delete Post">
         </form>
-        <form action="/deletePost" method="post">
-            Delete Thread:
-            <input type="number" name="pid" placeholder="thread id">
-            <input type="submit" value="Delete Thread"> <br>
-        </form>
+        <!--
         <form action="/lockThread" method="post">
             Lock Thread:
             <input type="number" name="pid" placeholder="thread id">
             <input type="submit" value="Lock Thread"> <br>
         </form>
+        <form action="/muteUser" method="post">
+            Mute User:
+            <input type="text" name="username" placeholder="username">
+            <input type="submit" value="Mute User"> <br>
+        <form action="/banUser" method="post">
+            Ban User:
+            <input type="text" name="username" placeholder="username">
+            <input type="submit" value="Ban User"> <br>
+        </form>
+        -->
+
         <form action="/deleteUser" method="post">
             Delete User:
-            <input type="number" name="uid" placeholder="user id">
+            <input type="text" name="username" placeholder="username">
             <input type="submit" value="Delete User"> <br>
         </form>
     </div>
     <div>
-        <h2>Admin Creation/Deletion</h2>
+        <h2>Change User Roles</h2>
         <form action="/updateAdmin" method="post">
-            <input type="number" name="uid" placeholder="user id">
-            <input type="submit" name="update_admin" value="Add">
-            <input type="submit" name="update_admin" value="Remove">
+            <input type="text" name="username" placeholder="username">
+            <input type="text" name="role" placeholder="role">
+            <input type="submit">
         </form>
-
     </div>
+    <div>
+        <h2>Unresolved Reports</h2>
+        <table border = "1px solid black">
+            <tr>
+                <th>#</th>
+                <th>Post Id</th>
+                <th>Rule Violation</th>
+                <th>Accused</th>
+                <th>Accuser</th>
+                <th>View Post</th>
+                <th>Delete Post</th>
+                <th>Delete User <br>(+ all related)</th>
+            </tr>
+        <%for(let i=0; i<reports.length; i++){%>
+            <%let threadId = -1;%>
+            <%if(reports[i].p_thread_id == -1){threadId = reports[i].p_post_id}
+            else{threadId = reports[i].p_thread_id}%>
+            <tr>
+                <td><%=reports[i].r_report_id%></td>
+                <td><%=reports[i].r_post_id%></td>
+                <td><%=reports[i].r_rule%></td>
+                <td><%=reports[i].p_username%></td>
+                <td><%=reports[i].r_username%></td>
+                <td><button onclick="window.open('/thread/<%=threadId%>#p<%=reports[i].p_post_id%>', '' ,'width=800px, height=800px, left=200px, top=200px')"><%=threadId%>#<%=reports[i].p_post_id%></button></td>
+                <!--<td>
+                    <form action="/lockThread" method="post">
+                        <input style="display:none" value="<%=//reports[i].p_post_id%>" name="pid" type="number">
+                        <input type="submit" value="Lock Thread">
+                    </form>
+                </td>-->
+                <td>
+                    <form action="/deletePost" method="post">
+                        <input style="display:none" value="<%=reports[i].p_post_id%>" type="number" name="pid">
+                        <input type="submit" value="Delete Post">
+                    </form>
+                </td>
+                <td>
+                    <form action="/deleteUser" method="post">
+                        <input style="display:none" value="<%=reports[i].p_username%>" type="text" name="username" placeholder="username">
+                        <input type="submit" value="Nuke User">
+                    </form>
+                </td>
+            </tr>
+        <%}%>
+        </table>
+    </div>
+    <a href='/users'><h2>View all Users</h2></a>
+
 </body>
+
 
 <!-- fix this -->
 <script type="text/javascript">

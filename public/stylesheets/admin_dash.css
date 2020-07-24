@@ -6,3 +6,10 @@
     border: 2px;
 }
 
+td, th, table{
+	border: 1px solid black;
+	border-collapse: collpase;	
+}
+td, th{
+	padding: 2px;
+}
