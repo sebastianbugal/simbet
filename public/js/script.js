@@ -4,7 +4,7 @@ console.log('color');
 
 var board = null
 var socket = io.connect(window.location.hostname);
-// var socket = io.connect( 'http://localhost:4000');
+// var socket = io.connect( 'http://localhost:3000');
 var color;
 var ublack;
 var uwhite;
@@ -18,6 +18,7 @@ document.getElementById("join").addEventListener("click", function(){
 });
 document.getElementById("reset").addEventListener("click", function(){
   socket.emit('reset', null);
+
 });
 // document.getElementById("start").addEventListener("click", function(){
 //   socket.emit('start', null);
