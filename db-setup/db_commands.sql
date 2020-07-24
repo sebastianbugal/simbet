@@ -79,6 +79,19 @@ CREATE TABLE Replies(
 	reply_id SERIAL REFERENCES posts(p_post_id)
 );
 
+-- table holding Match data
+CREATE TABLE Match(
+	match_id SERIAL PRIMARY KEY,
+	game_type VARCHAR(16) NOT NULL,
+	player_1 VARCHAR(18) REFERENCES Users(username) NOT NULL,
+	player_2 VARCHAR(18) REFERENCES Users(username) NOT NULL,
+	is_tie BOOL DEFAULT 'f',
+	winner VARCHAR(10) REFERENCES Users(username) NOT NULL
+);
+
+-- test data for matches
+INSERT INTO Match VALUES(1, 'chess', 'test', 'admin', 'f', 'admin');
+
 
 -- post a thread function and return the new id
 CREATE OR REPLACE FUNCTION post_thread(
