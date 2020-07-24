@@ -4,12 +4,12 @@ const path = require('path')
 const ses = require('express-session')
 // const http=require('http').Server(express);
 const { Chess } = require('./public/js/chess.js')
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 2000
 const { Pool } = require('pg');
 
 const db = new Pool({
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost:5432'
+	connectionString: process.env.DATABASE_URL||'postgres://postgres:root@localhost'
 })
 var fen;
 const fetch = require('node-fetch');
@@ -581,6 +581,9 @@ var chess = new Chess()
 var players=[];
 var bid;
 var wid;
+var username_w;
+var username_b;
+var data;
 io.on('connection', socket=>{
   var req = socket.request;
   //chat
@@ -604,6 +607,9 @@ io.on('connection', socket=>{
     socket.to('chess_room').emit('fen',chess.fen());
     wid=null
     bid=null
+    username_w=null;
+    username_b=null;
+    data=null
   })
   socket.on('join_room',data=>{
     if(wid==null){
@@ -616,15 +622,18 @@ io.on('connection', socket=>{
     console.log('user',socket.id,'joined')
     console.log(wid,bid)
     var side;
-    console.log('wid is: ',wid,'id gotten: ',socket.id);
     if(wid==socket.id){
       console.log('wid is: ',wid,'id gotten: ',socket.id);
-      side='white';}
+      // side='white';
+      username_w=req.session.username;
+    }
     else if(bid==socket.id){
       console.log('bdi is: ',bid,'id gotten: ',socket.id);
-      side='black'}
-
-    var data=[req.session.username,side]
+      // side='black'
+      username_b=req.session.username;
+    }
+    data=[username_w,username_b]
+    console.log(data);
     io.to('chess_room').emit('user_name',data)
     console.log(data)
 
