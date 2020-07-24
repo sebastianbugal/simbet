@@ -586,16 +586,17 @@ var data;
 io.on('connection', socket=>{
   var req = socket.request;
   //chat
-  socket.on('username', function(username) {
-    socket.username = req.session.username;
-    io.emit('is_online', '🔵 <i>' + socket.username + ' join the chat..</i>');
-  });
+  // socket.on('username', function(username) {
+  //   
+  //   io.emit('is_online', '🔵 <i>' + socket.username + ' join the chat..</i>');
+  // });
 
-  socket.on('disconnect', function(username) {
-    io.emit('is_online', '🔴 <i>' + socket.username + ' left the chat..</i>');
-  })
+  // socket.on('disconnect', function(username) {
+  //   io.emit('is_online', '🔴 <i>' + socket.username + ' left the chat..</i>');
+  // })
 
   socket.on('chat_message', function(message) {
+    socket.username = req.session.username;
     io.emit('chat_message', '<strong>' + socket.username + '</strong>: ' + message);
   });
 
