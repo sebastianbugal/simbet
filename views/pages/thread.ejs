@@ -91,18 +91,14 @@ var role = role;
 				<span class ="postMenuContainer">
 					<button class="postMenuBtn" onclick="toggle_post_menu(<%=posts[i].p_post_id%>)">v</button>
 					<div class="postMenu" id="postMenu<%=posts[i].p_post_id%>">
-						<a class="postMenuLink">hide post</a>
+						<a class="postMenuLink" onclick="hide_post('<%=posts[i].p_post_id%>')">hide post</a>
 						<% if(role == null) { %>
 							<a class="postMenuLink" href="/">log in to report</a>
 						<% } else { %>
 							<a class="postMenuLink" onclick="window.open('/report-post/<%=posts[i].p_post_id%>', 'reporting <%=posts[i].p_post_id%>', 'width=600px, height=600px, left=200px, top=200px')">report post</a>
 						<%}%>
-						<% if(role == 'j' || role == 'm' || role == 'a') { %>
-							<a href="/admin" class="postMenuLink">delete post</a>
-							<!--<a class="postMenuLink">ban request</a>-->
-							<% if(role != 'j'){%>
-								<a href="/admin" class="postMenuLink">ban user</a>
-							<%}%>
+						<% if(role == 'm' || role == 'a') { %>
+							<a href="/admin" class="postMenuLink">admin menu</a>
 						<% } %>
 					</div>
 				</span>
@@ -221,5 +217,9 @@ function drag_element(elmnt) {
 	});
 }
 
+function hide_post(postId){
+	console.log(postId);
+	$("#p"+postId).css("display", "none");
+}
 </script>
 </html>
