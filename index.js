@@ -88,7 +88,7 @@ app.get('/admin', (req, res) => {
 
 app.get('/chat',(req,res)=>{
   if(req.session.loggedin){
-  res.render('pages/chat');}
+  res.render('/userView');}
   else{
     res.redirect('login');
   }
