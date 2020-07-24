@@ -423,10 +423,10 @@ app.post('/add-post/', bodyParser.urlencoded({extended:false}), (req, res) =>{
         ipApiData['countryCode'] = json['countryCode'];
       console.log("fetched countryCode= " + json['countryCode']);
       console.log(ipApiUrl);
+      reply_query(pThreadId, pUsername, pText, ipApiData['countryCode']);
     });
   console.log("countryCode: " + ipApiData['countryCode']);
 
-  reply_query(pThreadId, pUsername, pText, ipApiData['countryCode']);
   // regular expression to limit consecutive line breaks to two
   pText = pText.replace(/\n\s*\n\s*\n/g, '\n\n');
   res.redirect('/thread/'+pThreadId);
