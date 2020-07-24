@@ -18,7 +18,11 @@
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
   </head>
   <body>
-    <% include ../partials/nav.ejs %>
+    <% if(session.role == ('a' || 'm')) { %>
+      <% include ../partials/adminNav.ejs %>
+    <% } else { %>
+      <%include ../partials/nav.ejs%>
+    <%} %>
 
     <ul id="messages"></ul>
     <form action="/" method="POST" id="chatForm">

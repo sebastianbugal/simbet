@@ -13,7 +13,11 @@ var role = role;
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
-<% include ../partials/nav.ejs %>
+	<% if(session.role == ('a' || 'm')) { %>
+		<% include ../partials/adminNav.ejs %>
+	<% } else { %>
+		<%include ../partials/nav.ejs%>
+	<%} %>
 <hr>
 <div id="mainContainer">
 
