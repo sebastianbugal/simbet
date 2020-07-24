@@ -10,7 +10,11 @@
 </head>
 
 <body>
-	<% include ../partials/nav.ejs %>
+	<% if(session.role == ('a' || 'm')) { %>
+    <% include ../partials/adminNav.ejs %>
+  <% } else { %>
+    <%include ../partials/nav.ejs%>
+  <%} %>
 <div id="mainContainer">
 	<div id="header">
 		<img src="/splat.png"></img>

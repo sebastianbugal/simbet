@@ -5,7 +5,11 @@
   <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
 </head>
 <body>
-  <% include ../partials/nav.ejs %>
+  <% if(session.role == ('a' || 'm')) { %>
+    <% include ../partials/adminNav.ejs %>
+  <% } else { %>
+    <%include ../partials/nav.ejs%>
+  <%} %>
   <div>
   <ul style="float:left; list-style-type: none;">
   <li><a href="/chess" ><img src='/img/chesspieces/wikipedia/bK.png'></a></li>
