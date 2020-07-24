@@ -52,7 +52,7 @@ background: #0197F6;
       .frm { padding: 3px; position: fixed; bottom: 0; width: 100%;  border-top-width: 1px;}
       .frm_in {bottom:10px;width:290px; border-style: solid; border-width: 1px; padding: 10px; margin-right: .5%; }
       .frm_btn { bottom:10px;width: 64px; background: #0197F6; color: black; font-weight:bold; border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages { list-style-type: none; margin: 0; padding: 0; word-wrap: break-word}
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
   </style>
@@ -75,7 +75,7 @@ background: #0197F6;
 <button id='open_chat' class="open_chat" onclick="openForm()">Open Chat</button>
 <script>
 var socket = io.connect( window.location.hostname );
-//var socket = io.connect( 'http://localhost:4000');
+// var socket = io.connect( 'http://localhost:3000');
 $('#chatForm').submit(function(e){
     e.preventDefault();
     if($('#txt').val()!=''){

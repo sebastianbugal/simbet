@@ -4,7 +4,7 @@ const path = require('path')
 const ses = require('express-session')
 // const http=require('http').Server(express);
 const { Chess } = require('./public/js/chess.js')
-const PORT = process.env.PORT || 4000
+const PORT = process.env.PORT || 3000
 const { Pool } = require('pg');
 const Twitter = require('twitter');
 if (process.env.NODE_ENV !== 'production') {
