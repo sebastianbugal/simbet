@@ -4,7 +4,7 @@ console.log('color');
 
 var board = null
 var socket = io.connect(window.location.hostname);
-// var socket = io.connect( 'http://localhost:3000');
+// var socket = io.connect( 'http://localhost:2000');
 var color;
 var ublack;
 var uwhite;
@@ -77,16 +77,26 @@ function updateStatus () {
 socket.on('fen',data=>{
     board.position(data);
 })
+// socket.on('user_name',data=>{
+//   console.log('working')
+//   if(data[1]=='white'){
+//     var wname=document.getElementById('u2')
+//     wname.textContent=data[0];
+//   }
+//   else if(data[1]=='black'){
+//     var bname=document.getElementById('u1')
+//     bname.textContent=data[0];
+//   }
+// })
 socket.on('user_name',data=>{
   console.log('working')
-  if(data[1]=='white'){
-    var wname=document.getElementById('u2')
-    wname.textContent=data[0];
-  }
-  else if(data[1]=='black'){
-    var bname=document.getElementById('u1')
-    bname.textContent=data[0];
-  }
+
+  var wname=document.getElementById('u2')
+  wname.textContent=data[0];
+
+  var bname=document.getElementById('u1')
+  bname.textContent=data[1];
+
 })
 
 
