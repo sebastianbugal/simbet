@@ -56,3 +56,20 @@ body{
 	flex-direction: column;
 	flex-wrap: wrap;
 }
+
+#searchContainer {
+	width: 1000px;
+	margin: 0 auto;
+	border-radius: 1px solid black;
+	overflow: auto;
+}
+
+#followSearch {
+	width: 500px;
+	float: left;
+}
+
+#blockedSearch {
+	width: 500px;
+	overflow: hidden;
+}

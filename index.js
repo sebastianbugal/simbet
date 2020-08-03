@@ -117,7 +117,8 @@ app.get('/chat',(req,res)=>{
 var refresh_catalog = (req, res) => {
   if(req.session.loggedin){
   	let threadQuery = `SELECT * FROM Posts  WHERE p_thread_id = -1
-  	AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
+  	AND (t_forum = any((select accessible from users where username='${req.session.username}')::text[]))
+    AND NOT (p_username = any((select blocked from users where username='${req.session.username}')::text[])) ORDER BY p_post_id DESC`;
   	db.query(threadQuery, (error, result) => {
   		if(error){ res.send(error); return; }
   		let data = {'rows':result.rows};
@@ -126,7 +127,18 @@ var refresh_catalog = (req, res) => {
   		else
   			data['username'] = "";
   		console.log(result.rows);
-  		res.render('pages/catalog.ejs', data);
+      query2=`SELECT accessible FROM users WHERE username='${req.session.username}'`
+      db.query(query2, (err,resultA) => {
+        if(err){
+          console.log(err);
+          res.redirect('/')
+        }
+        else{
+          console.log(resultA.rows[0].accessible)
+          data['forums']=resultA.rows[0].accessible
+          res.render('pages/catalog.ejs', data);
+        }
+      })
   	});
   } else {
     res.redirect('login');
@@ -171,7 +183,18 @@ app.get('/user_add', (req,res)=>{
       else{
         console.log(result.rows[0].following)
         fol=result.rows[0].following
-        res.render('pages/search',fol)
+        query=`SELECT blocked FROM users WHERE username='${req.session.username}'`
+        db.query(query, (err,result) => {
+          if(err){
+            console.log(err);
+            res.redirect('/')
+          }
+          else{
+            console.log(result.rows[0].blocked)
+            block=result.rows[0].blocked
+            res.render('pages/search',[fol,block])
+          }
+        })
       }
     })
   }
@@ -220,6 +243,48 @@ app.post('/unfollow', (req,res)=>{
   })
 
   console.log(unfollow);
+})
+
+app.post('/block_user', (req,res)=>{
+  var searchVal=req.body.searchVal;
+  query=`select username from users where username='${searchVal}'`
+  db.query(query, (err,result) => {
+    console.log(result)
+    if(result.rowCount>=1){
+      update=`UPDATE users SET blocked=array_append(blocked, '${searchVal}') where username='${req.session.username}' AND NOT ('${searchVal}'=any(blocked))`;
+      db.query(update,(err,result)=>{
+        if(err){
+          console.log(err)
+          res.redirect('/userView')
+        }
+        else{
+          console.log(result)
+          res.redirect('/userView')
+        }
+      });
+    }
+    else{
+      console.log('nothing found')
+      res.redirect('/userView')
+    }
+  })
+})
+
+app.post('/unblock', (req,res)=>{
+  var unblock=req.body.unblock;
+  update=`UPDATE users SET blocked=array_remove(blocked, '${unblock}') where username='${req.session.username}'`;
+  db.query(update, (error, result) => {
+    if(error){
+      console.log(error)
+      res.redirect('/userView')
+    }
+    else{
+      console.log(result);
+      res.redirect('/userView')
+    }
+  })
+
+  console.log(unblock);
 })
 
 app.post('/feed', (req,res)=>{
@@ -317,19 +382,28 @@ app.get('/thread/:id', (req,res)=>{
     let data = {};
     let id = req.params.id;
     const query = `SELECT * FROM Posts p LEFT JOIN Replies r ON r.parent_id = p.p_post_id WHERE p.p_thread_id = ${id} OR (p.p_thread_id = -1 AND p.p_post_id = ${id}) ORDER BY p.p_post_id ASC, r.reply_id ASC`;
-    db.query(query, (error, result) => {
-      if(error){ res.send(error); return; }
-      data['posts'] =  result.rows;
-      data['username'] = "";
-      if(req.session.loggedin == true){
-        data['username'] = req.session.username;
-        data['role'] = req.session.role;
+    const blockedQ = `SELECT blocked FROM users WHERE username='${req.session.username}'`;
+    db.query(blockedQ, (err, resultB) => {
+      if(err){
+        console.log(err);
+        res.redirect('/')
+      } else {
+        console.log(resultB.rows[0].blocked)
+        data['block']=resultB.rows[0].blocked
+        db.query(query, (error, result) => {
+          if(error){ res.send(error); return; }
+          data['posts'] =  result.rows;
+          data['username'] = "";
+          if(req.session.loggedin == true){
+            data['username'] = req.session.username;
+            data['role'] = req.session.role;
+          }
+          console.log(result.rows);
+          res.render('pages/thread.ejs',data);
+        });
       }
-      //console.log(result.rows);
-      res.render('pages/thread.ejs', data);
-    });
-  }
-  else{
+    })
+  } else {
     res.redirect('/login');
   }
 });
@@ -587,7 +661,7 @@ io.on('connection', socket=>{
   var req = socket.request;
   //chat
   // socket.on('username', function(username) {
-  //   
+  //
   //   io.emit('is_online', '🔵 <i>' + socket.username + ' join the chat..</i>');
   // });
 

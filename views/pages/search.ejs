@@ -19,16 +19,17 @@
   <%} %>
   <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
   <link rel="stylesheet" type="text/css" href="/stylesheets/forum.css">
-
-  <div class="container">
-  <div class="row">
+<div id="searchContainer">
+  <div id="followSearch">
   <form class="col-sm-4" action="/add_user" method="POST">
     <div class="registerForm">
       <input class="textBoxes" type="text" placeholder= "Username To Follow" name="searchVal" required><br/>
       <input class="forumButtons" type="submit" name="searchSubmit" value="Follow User">
     </div>
   </form>
-  <div class="col-sm-4">
+  <br>
+  <br>
+  <br>
     <h2>Followed Users:</h2><br/>
     <% fol.forEach(function(r) { %>
       <form action="/unfollow" method="POST">
@@ -38,7 +39,26 @@
         </form>
         </div>
   <% }); %>
-  </div>
+</div>
+  <div id="blockedSearch">
+  <form class="col-sm-4" action="/block_user" method="POST">
+    <div class="registerForm">
+      <input class="textBoxes" type="text" placeholder= "Username to Block" name="searchVal" required><br/>
+      <input class="forumButtons" type="submit" name="searchSubmit" value="Block User">
+    </div>
+  </form>
+  <br>
+  <br>
+  <br>
+  <h2>Blocked Users:</h2><br/>
+  <% block.forEach(function(r) { %>
+    <form action="/unblock" method="POST">
+      <div style=' font-size: 16px;	margin-bottom: 3px;'><%=r%>
+      <input class="forumButtons" style="margin-left:20px;" type="submit" name="a" value="Unblock">
+      <input type="hidden" name="unblock" value="<%=r%>">
+      </form>
+      </div>
+      <% }); %>
 </div>
 </div>
 </body>
