@@ -4,7 +4,7 @@ const path = require( "path" );
 const ses = require( "express-session" );
 // const http=require('http').Server(express);
 const { Chess } = require( "./public/js/chess.js" );
-const PORT = process.env.PORT || 1000;
+const PORT = process.env.PORT || 2000;
 const { Pool } = require( "pg" );
 var rooms=[];
 const glicko=require( "glicko2" );
@@ -25,7 +25,7 @@ var bodyParser = require( "body-parser" );
 
 const app = express();
 var server = http.createServer( app );
-const io = require( "socket.io" ).listen( server );
+const io = require( "socket.io", )(server, {'pingTimeout': 180000, 'pingInterval': 25000})
 var session=ses ( {
 
 	secret: "splatsplatsplat",
@@ -37,6 +37,7 @@ app.use( session );
 io.use( function ( socket, next ) {
 	session( socket.request, socket.request.res, next );
 } );
+
 // const sharedsession = require("express-socket.io-session");
 app.use( express.json() );
 app.use( express.urlencoded( { extended:false } ) );
