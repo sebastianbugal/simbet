@@ -75,7 +75,12 @@
 					</tr>
 					<tr>
 						<td>Forum</td>
-						<td><input class="textBoxes" name="tForum" maxlength="18" type="text"></input></td>
+						<!--<td><input class="textBoxes" name="tForum" maxlength="18" type="text"></input></td>-->
+						<td><select class="textBoxes" name="tForum">
+							<%forums.forEach(function(f) {%>
+								<option value="<%=f%>"><%=f%></option>
+							<%});%>
+						</select>
 					</tr>
 					<tr>
 						<td>Comment</td><td><textarea class="textBoxes" name="pText" maxlength="1500" rows="6" cols="32"></textarea></td>
