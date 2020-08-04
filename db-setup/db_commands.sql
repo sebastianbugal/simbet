@@ -6,13 +6,15 @@ CREATE DATABASE splat;
 CREATE TABLE Users(
 	username VARCHAR(18) PRIMARY KEY,
 	email VARCHAR,
-	chess_elo INT DEFAULT 0,
-	checkers_elo INT DEFAULT 0,
+	chess_elo INT ,
+	checkers_elo INT ,
 	password VARCHAR(30) NOT NULL,
 	role CHAR DEFAULT 'u',
 	date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+alter table users add column rd numeric; 
+alter table users add column vol numeric;
 alter table users add following text[] DEFAULT '{}'::text[];
 --Insert User
 INSERT INTO Users(
