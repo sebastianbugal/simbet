@@ -32,6 +32,13 @@ var session=ses ( {
 	resave: false,
 	saveUninitialized: true
 } );
+io.set('transports', [
+    'websocket'
+  , 'flashsocket'
+  , 'htmlfile'
+  , 'xhr-polling'
+  , 'jsonp-polling'
+  ]);
 
 app.use( session );
 io.use( function ( socket, next ) {
