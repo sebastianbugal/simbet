@@ -5,8 +5,8 @@ var first = document.getElementById( "chess-script" ).getAttribute( "data-first"
 var room = document.getElementById( "chess-script" ).getAttribute( "data-room" );
 
 var board = null;
-// var socket = io.connect( window.location.hostname );
-var socket = io.connect( "http://localhost:1000" );
+var socket = io.connect( window.location.hostname);
+// var socket = io.connect( "http://localhost:1000" );
 var color;
 var ublack;
 var uwhite;

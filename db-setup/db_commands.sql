@@ -16,6 +16,8 @@ CREATE TABLE Users(
 alter table users add column rd numeric; 
 alter table users add column vol numeric;
 alter table users add following text[] DEFAULT '{}'::text[];
+
+alter table users add blocked text[] DEFAULT '{}'::text[];
 --Insert User
 INSERT INTO Users(
 	username, password
@@ -185,7 +187,7 @@ BEGIN
 	PERFORM "delete_post"(p.p_post_id)
 	FROM Posts p
 	WHERE p.p_username = in_username;
-	-- delete forum 
+	-- delete forum
 	--DELETE FROM forums
 	--WHERE f_owner = in_username;
 	-- delete user
