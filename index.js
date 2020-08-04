@@ -36,7 +36,6 @@ io.set('transports', [
     'websocket'
   , 'flashsocket'
   , 'htmlfile'
-  , 'xhr-polling'
   , 'jsonp-polling'
   ]);
 
