@@ -32,12 +32,12 @@ var session=ses ( {
 	resave: false,
 	saveUninitialized: true
 } );
-io.set('transports', [
-    'websocket'
-  , 'flashsocket'
-  , 'htmlfile'
-  , 'jsonp-polling'
-  ]);
+// io.set('transports', [
+//     'websocket'
+//   , 'flashsocket'
+//   , 'htmlfile'
+//   , 'jsonp-polling'
+//   ]);
 
 app.use( session );
 io.use( function ( socket, next ) {
