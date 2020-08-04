@@ -4,7 +4,7 @@ const path = require( "path" );
 const ses = require( "express-session" );
 // const http=require('http').Server(express);
 const { Chess } = require( "./public/js/chess.js" );
-const PORT = process.env.PORT || 2000;
+const PORT = process.env.PORT || 5000;
 const { Pool } = require( "pg" );
 var rooms=[];
 const glicko=require( "glicko2" );
@@ -920,7 +920,7 @@ io.on( "connection", socket=>{
 	socket.on( "disconnect",( reason ) =>{
 
 		console.log( reason );
-		var cur; 
+		var cur=null; 
 		var white_player;
 		var black_player;
 		var match=[];
@@ -929,6 +929,10 @@ io.on( "connection", socket=>{
 				cur = r;
 			}
 		} );
+		if(cur==null){
+			console.log('chat disconnect')
+		}
+		else{
 		if( cur.black_socket==socket.id && !cur.forfeit ){
 
 			console.log( "works here", cur.black_user, cur.white_user );
@@ -1004,6 +1008,7 @@ io.on( "connection", socket=>{
 			}
 		} );
 		io.in( cur.room ).emit( "opponent_disconnect" );
+	}
 	} );
 } );
 

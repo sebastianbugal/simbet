@@ -6,7 +6,7 @@ var room = document.getElementById( "chess-script" ).getAttribute( "data-room" )
 
 var board = null;
 var socket = io.connect( window.location.hostname);
-// var socket = io.connect( "http://localhost:2000" );
+// var socket = io.connect( "http://localhost:5000" );
 var color;
 var ublack;
 var uwhite;
