@@ -25,7 +25,7 @@ var bodyParser = require( "body-parser" );
 
 const app = express();
 var server = http.createServer( app );
-const io = require( "socket.io", )(server, {'pingTimeout': 180000, 'pingInterval': 25000})
+const io = require( "socket.io", )(server, {'pingTimeout': 180000})
 var session=ses ( {
 
 	secret: "splatsplatsplat",
@@ -847,13 +847,14 @@ io.on( "connection", socket=>{
 				console.log( black_player, white_player );
 				if( moveColor=="white" ){
 					console.log( "white" );
-					match.push( [ white_player,black_player,0 ] );
+					match.push( [ white_player,black_player,1 ] );
 	
 	
 				}
 				else{
+				
 					console.log( "black" );
-					match.push( [ white_player,black_player,1 ] );
+					match.push( [ white_player,black_player,0 ] );
 
 				}
 				console.log( match );
@@ -877,9 +878,6 @@ io.on( "connection", socket=>{
 				  }
 			  })
 			  console.log(rooms, r)
-
-
-
 		}
 
 		// draw?
@@ -1054,7 +1052,17 @@ io.on( "connection", socket=>{
 			}
 		} );
 		io.in( cur.room ).emit( "opponent_disconnect" );
-
+		rooms.forEach(function(item, index, object) {
+			if (item.room === cur.room) {
+			  object.splice(index, 1);
+			}
+		  });
+		  r.forEach(function(item, index, object){
+			if (item === cur.room) {
+				object.splice(index, 1);
+			  }
+		  })
+		  console.log(rooms, r)
 	}
 	} );
 } );
