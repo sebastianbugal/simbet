@@ -79,18 +79,24 @@ CREATE TABLE Replies(
 	reply_id SERIAL REFERENCES posts(p_post_id)
 );
 
--- table holding Match data
-CREATE TABLE Match(
-	match_id SERIAL PRIMARY KEY,
+-- table holding player match history
+CREATE TABLE Ranking(
+	uid VARCHAR(18) REFERENCES Users(username) NOT NULL,
 	game_type VARCHAR(16) NOT NULL,
-	player_1 VARCHAR(18) REFERENCES Users(username) NOT NULL,
-	player_2 VARCHAR(18) REFERENCES Users(username) NOT NULL,
 	is_tie BOOL DEFAULT 'f',
-	winner VARCHAR(10) REFERENCES Users(username) NOT NULL
+	wins INTEGER DEFAULT 0,
+	ties INTEGER DEFAULT 0,
+	losses INTEGER DEFAULT 0
 );
 
 -- test data for matches
-INSERT INTO Match VALUES(1, 'chess', 'test', 'admin', 'f', 'admin');
+INSERT INTO Ranking VALUES('test', 'chess', 'f', 2, 0 ,3);
+
+-- Select player and score data
+Select U.username, chess_elo -- FINISH THIS
+FROM Users U, Match M 
+WHERE U.username = M.player_1 OR U.username = M.player_2 
+ORDER BY chess_elo;
 
 
 -- post a thread function and return the new id
