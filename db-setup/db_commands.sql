@@ -95,6 +95,7 @@ CREATE TABLE Ranking(
 
 -- test data for matches
 INSERT INTO Ranking VALUES('test', 'chess', 'f', 2, 0 ,3);
+INSERT INTO Ranking VALUES('admin', 'chess', 'f', 3, 0 ,2);
 
 -- Select player and score data
 Select U.username, chess_elo -- FINISH THIS

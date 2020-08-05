@@ -66,12 +66,13 @@ app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more t
 		t_client.get( "search/tweets", { q: "#SplatForum", count:"5", include_entities:"true" }, function( error, tweets, response ) {
 			if( error ) throw error;
 			var tweets = { "statuses":tweets.statuses };
-			var query = "SELECT * FROM users ORDER BY chess_elo DESC";
+			var query = "SELECT * FROM users, ranking WHERE username=uid AND game_type='chess' ORDER BY chess_elo DESC";
 			db.query( query, ( err, result ) => {
 				if( err ){
 					res.send( error );
-				}
-				var data = { "rows":result.rows, tweets };
+        }
+        var data = { "rows":result.rows, tweets };
+        console.log(data);
 				res.render( "pages/leaderBoards", data );
 			} );
 		} );
@@ -552,7 +553,13 @@ app.post( "/registerForm", ( req, res ) => {
 			var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
 			db.query( query, ( err,result ) => {
 				if( result ) {
-					console.log( "Successful registration." );
+          console.log( "Successful registration." );
+          // create chess match data
+          db.query( `INSERT INTO Ranking VALUES('${req.body.username}', 'chess')`, (error, res) => {
+            if(error){
+              console.log(error);
+            }
+          });
 					res.redirect( "/login" );
 				} else if ( err ){
 					res.render( "pages/userNameTaken" );
