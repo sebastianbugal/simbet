@@ -620,11 +620,13 @@ app.post("/reset-email", (req, res) => {
 							from: 'splatwebservices@gmail.com',
 							to: `${userEmail}`,
 							subject: `Password reset token for Splat`,
-							text: `Hello, \n You are receiving this email because you or somebody else has requested a password reset on splat. If this was not you,
-							check your security on all your accounts. \n If this was you then your password reset token is: ${num}. Enter this on the page that you
-							have been redirected to on Splat. \n Thank you for using Splat. \n From: The Splat Team.`
+							text: `Hello,
+You are receiving this email because you or somebody else has requested a password reset on splat. If this was not you, check your security on all your accounts.
+If this was you then your password reset token is: ${num}. Enter this on the page that you have been redirected to on Splat.
+Thank you for using Splat.
+From: The Splat Team.`
 						}
-						transporter.sendMail(emailToken, (err, info) => {
+						transporter.sendMail(emailToken, function(err, info){
 							if (err) {
 								console.log(err);
 								res.redirect("/login");
@@ -647,8 +649,7 @@ app.post("/reset-email", (req, res) => {
 });
 
 app.post("/reset-Check", (res,req) => {
-	//filler for now
-	res.redirect("/login");
+	//do nothing for a bit
 });
 
 // admin posts
