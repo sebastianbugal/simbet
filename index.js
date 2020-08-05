@@ -17,7 +17,12 @@ var settings = {
 var ranking = new glicko.Glicko2( settings );
 const db = new Pool( {
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
+	//connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
+	user: 'postgres',
+  host: 'localhost',
+  database: 'postgres',
+  password: 'power',
+  port: 5432,
 } );
 const fetch = require( "node-fetch" );
 
@@ -607,8 +612,8 @@ app.post("/reset-email", (req, res) => {
 		db.query(query, (err, result) => {
 			if (result.rowCount > 0) {
 				var randy = crypto.randomBytes(6);
-				var num = format(randy, 'dec');
-				console.log(num);
+				var stringnum = format(randy, 'dec');
+				var num = BigInt(stringnum);
 				const query2 = `UPDATE users SET resetToken = '${num}' WHERE email = '${userEmail}'`;
 				db.query(query2, (err,result) => {
 					if(err) {
@@ -632,7 +637,6 @@ From: The Splat Team.`
 								res.redirect("/login");
 								return;
 							} else {
-								console.log(info.response);
 								res.render("pages/resetCheck");
 								return;
 							}
@@ -648,8 +652,51 @@ From: The Splat Team.`
 	}
 });
 
-app.post("/reset-Check", (res,req) => {
-	//do nothing for a bit
+app.post("/reset-check", (req, res)=> {
+	var token = req.body.numericalToken;
+	const query = `SELECT username FROM users WHERE resetToken = '${token}'`;
+	db.query(query, (err, result) => {
+		if(err){
+			console.log(err);
+		} else if (result.rowCount == 1){
+			const query2 = `UPDATE users SET resetToken = NULL WHERE resetToken = ${token}`;
+			db.query(query2, (err2,result2) => {
+				if(err2){
+					console.log(err2);
+				} else {
+					user = { 'rows': result.rows}
+					res.render("pages/resetPassword", user);
+				}
+			})
+		} else {
+
+		}
+	})
+});
+
+app.post("/reset-password", (req, res)=> {
+	var pass1 = req.body.password1;
+	var pass2 = req.body.password2;
+	var usernameChange = req.body.user;
+	if(pass1 == pass2){
+		const query = `UPDATE users SET password = '${pass1}' WHERE username = '${usernameChange}'`;
+		db.query(query, (err, result) => {
+			if(err){
+				console.log(err);
+			} else {
+				res.render("pages/resetPassSuccess");
+			}
+		});
+	} else {
+		db.query(`SELECT username FROM users WHERE username = '${usernameChange}'`, (err,result)=> {
+			if(err){
+				console.log(err);
+			} else {
+				user = { 'rows': result.rows}
+				res.render("pages/resetPassword", user);
+			}
+		})
+	}
 });
 
 // admin posts

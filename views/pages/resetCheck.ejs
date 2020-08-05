@@ -9,10 +9,10 @@
   </head>
   <body>
     <div class="forgotPage">
-      <form class="container align-middle a" action="/reset-Check" method="post">
+      <form class="container align-middle a" action="/reset-check" method="post">
         <div class="forgotForm">
-          Insert the numerical token that has been sent to your email here to rest your password. <br>
-          <input class="textBoxes" type="text" placeholder="Enter your token" name="token"> <br>
+          Enter the reset token that was emailed to you. <br>
+          <input class="textBoxes" type="text" placeholder="Enter your reset token" name="numericalToken" required> <br>
           <input class="submitButtons" type="submit" name="submitToken" value="Submit">
         </div>
       </form>
