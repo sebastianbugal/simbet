@@ -4,7 +4,7 @@ const path = require( "path" );
 const ses = require( "express-session" );
 // const http=require('http').Server(express);
 const { Chess } = require( "./public/js/chess.js" );
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 1500;
 const { Pool } = require( "pg" );
 var rooms=[];
 const glicko=require( "glicko2" );
@@ -694,7 +694,7 @@ io.on( "connection", socket=>{
 		console.log( "sending user" );
 
 		socket.join( data );
-		rooms.push( { "room":data , "chess":a, "white_socket":socket.id, "black_socket":null,"white_user":username_w, "black_user":null, "clientnum":1, "forfeit":false } );
+		rooms.push( { "room":data , "chess":a, "white_socket":socket.id, "black_socket":null,"white_user":username_w, "black_user":null, "clientnum":1, "forfeit":false, "running":false } );
 		r.push( data );
 		console.log( rooms[0].white_socket );
 
@@ -718,6 +718,7 @@ io.on( "connection", socket=>{
 				bid=r.black_socket;
 				r.black_user=req.session.username;
 				r.clientnum++;
+				r.running=true;
 			}
 
 		} );
@@ -812,10 +813,11 @@ io.on( "connection", socket=>{
 		var status;
 		// checkmate?
 		console.log( cur );
+		
+
 		if ( chess.in_checkmate() ) {
 			status = "Game over, " + moveColor + " is in checkmate.";
-			// io.in( data[0] ).emit( "gameover" );
-			var white_player;
+ 			var white_player;
 			var black_player;
 			var match=[];
 			console.log( "works here", cur.black_user, cur.white_user );
@@ -847,10 +849,12 @@ io.on( "connection", socket=>{
 					console.log( "white" );
 					match.push( [ white_player,black_player,0 ] );
 	
+	
 				}
 				else{
 					console.log( "black" );
 					match.push( [ white_player,black_player,1 ] );
+
 				}
 				console.log( match );
 				ranking.updateRatings( match );
@@ -861,6 +865,21 @@ io.on( "connection", socket=>{
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
 
+			io.in(cur.room).emit('close_room',(moveColor+' Wins'))
+			rooms.forEach(function(item, index, object) {
+				if (item.room === cur.room) {
+				  object.splice(index, 1);
+				}
+			  });
+			  r.forEach(function(item, index, object){
+				if (item === cur.room) {
+					object.splice(index, 1);
+				  }
+			  })
+			  console.log(rooms, r)
+
+
+
 		}
 
 		// draw?
@@ -869,6 +888,7 @@ io.on( "connection", socket=>{
 			var white_player;
 			var black_player;
 			var match=[];
+
 			console.log( "works here", cur.black_user, cur.white_user );
 			var query = `SELECT username, chess_elo, rd, vol FROM users WHERE username='${cur.black_user}' OR username='${cur.white_user}'`;
 			console.log( query );
@@ -902,6 +922,18 @@ io.on( "connection", socket=>{
 				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
+			io.in(cur.room).emit('close_room','Draw')
+			rooms.forEach(function(item, index, object) {
+				if (item.room === cur.room) {
+				  object.splice(index, 1);
+				}
+			  });
+			  r.forEach(function(item, index, object){
+				if (item === cur.room) {
+					object.splice(index, 1);
+				  }
+			  })
+			  console.log(rooms, r)
 		}
 
 		// game still on
@@ -931,6 +963,20 @@ io.on( "connection", socket=>{
 		} );
 		if(cur==null){
 			console.log('chat disconnect')
+		}
+		else if(cur.running==false){
+			console.log('game not running')
+			rooms.forEach(function(item, index, object) {
+				if (item.room === cur.room) {
+				  object.splice(index, 1);
+				}
+			  });
+			  r.forEach(function(item, index, object){
+				if (item === cur.room) {
+					object.splice(index, 1);
+				  }
+			  })
+			  console.log(rooms, r)
 		}
 		else{
 		if( cur.black_socket==socket.id && !cur.forfeit ){
@@ -1008,13 +1054,18 @@ io.on( "connection", socket=>{
 			}
 		} );
 		io.in( cur.room ).emit( "opponent_disconnect" );
+
 	}
 	} );
 } );
 
 app.get( "/rooms", ( req,res )=>{
+	if(req.session.loggedin){
 	var result={ "rooms":rooms };
-	res.render( "pages/rooms",result );
+	res.render( "pages/rooms",result );}
+	else{
+		res.redirect('/login')
+	}
 } );
 app.post( "/create_room" , ( req,res )=>{
 	res.redirect( "/chess"+req.session.username );
