@@ -17,12 +17,7 @@ var settings = {
 var ranking = new glicko.Glicko2( settings );
 const db = new Pool( {
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	//connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
-	user: 'postgres',
-  host: 'localhost',
-  database: 'postgres',
-  password: 'power',
-  port: 5432,
+	connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
 } );
 const fetch = require( "node-fetch" );
 
@@ -651,7 +646,7 @@ app.post("/reset-email", (req, res) => {
 	}
 });
 
-app.post("/reset-Check"), (res,req) => {
+app.post("/reset-Check", (res,req) => {
 	//filler for now
 	res.redirect("/login");
 });
