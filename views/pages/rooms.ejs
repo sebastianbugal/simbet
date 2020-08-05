@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include ../partials/header.ejs %>
+  <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
+</head>
+<body>
+  <% if(session.role == ('a' || 'm')) { %>
+    <% include ../partials/adminNav.ejs %>
+  <% } else { %>
+    <%include ../partials/nav.ejs%>
+  <%} %>
+  <form method="POST" action='/create_room' name='create_room'>
+      <input type="submit" value='Create Room'>
+  </form>
+  <%for(var i = 0; i< rooms.length; i++){ %> 
+    <%if(rooms[i].clientnum<2){ %>
+    <form method="POST" action='/join_room' name='join_room'>
+        <input name='room' class="btn btn-dark" type="submit" value='<%=rooms[i].room%>'>
+    </form>
+
+  <%}};%>
+  <!-- <div>
+      border: 1px solid black;
+  <ul style="float:left; list-style-type: none;">
+  <li><a href="/chess" ><img src='/img/chesspieces/wikipedia/bK.png'></a></li>
+  </ul>
+</div> -->
+</body>
+
+<% include ../partials/chat.ejs %>
+</html>

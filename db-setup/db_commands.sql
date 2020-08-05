@@ -6,14 +6,18 @@ CREATE DATABASE splat;
 CREATE TABLE Users(
 	username VARCHAR(18) PRIMARY KEY,
 	email VARCHAR,
-	chess_elo INT DEFAULT 0,
-	checkers_elo INT DEFAULT 0,
+	chess_elo INT ,
+	checkers_elo INT ,
 	password VARCHAR(30) NOT NULL,
 	role CHAR DEFAULT 'u',
 	date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+alter table users add column rd numeric; 
+alter table users add column vol numeric;
 alter table users add following text[] DEFAULT '{}'::text[];
+
+alter table users add blocked text[] DEFAULT '{}'::text[];
 --Insert User
 INSERT INTO Users(
 	username, password
@@ -202,7 +206,7 @@ BEGIN
 	PERFORM "delete_post"(p.p_post_id)
 	FROM Posts p
 	WHERE p.p_username = in_username;
-	-- delete forum 
+	-- delete forum
 	--DELETE FROM forums
 	--WHERE f_owner = in_username;
 	-- delete user

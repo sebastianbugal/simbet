@@ -10,7 +10,11 @@
 </head>
 
 <body>
-	<% include ../partials/nav.ejs %>
+	<% if(session.role == ('a' || 'm')) { %>
+    <% include ../partials/adminNav.ejs %>
+  <% } else { %>
+    <%include ../partials/nav.ejs%>
+  <%} %>
 <div id="mainContainer">
 	<div id="header">
 		<img src="/splat.png"></img>
@@ -71,7 +75,12 @@
 					</tr>
 					<tr>
 						<td>Forum</td>
-						<td><input class="textBoxes" name="tForum" maxlength="18" type="text"></input></td>
+						<!--<td><input class="textBoxes" name="tForum" maxlength="18" type="text"></input></td>-->
+						<td><select class="textBoxes" name="tForum">
+							<%forums.forEach(function(f) {%>
+								<option value="<%=f%>"><%=f%></option>
+							<%});%>
+						</select>
 					</tr>
 					<tr>
 						<td>Comment</td><td><textarea class="textBoxes" name="pText" maxlength="1500" rows="6" cols="32"></textarea></td>
@@ -147,14 +156,14 @@
 		[<a href="javascript:location.reload()">Refresh</a>]
 	</div>
 	<hr>
-	Style:
+	<!--Style:
 		<select id="style">
-		</select>
+		</select>-->
 	<br>
 	<span>All trademarks and copyrights on this page are owned by their respective parties. Images uploaded are the responsibility of the Poster. Comments are owned by the Poster.</span>
 	<br>
-	<a href="/about">About</a> -
-	<a href="/contact">Contact</a>
+	<!--<a href="/about">About</a> -
+	<a href="/contact">Contact</a>-->
 </div>
 </body>
 <% include ../partials/chat.ejs %>

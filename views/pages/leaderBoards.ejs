@@ -2,18 +2,19 @@
 <html>
 <head>
   <title>LeaderBoards</title>
+  <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
   <link rel="stylesheet" type="text/css" href="/stylesheets/leaderBoard.css">
   <% include ../partials/header.ejs %>
 </head>
 
 <body>
-  
+
   <% if(session.role == ('a' || 'm')) { %>
     <% include ../partials/adminNav.ejs %>
   <% } else { %>
     <%include ../partials/nav.ejs%>
   <%} %>
-
+  <% include ../partials/chat.ejs %>
     <table class="chess_leaderboard">
       <tr>
         <th>Rank</th>
@@ -48,11 +49,16 @@
       <blockquote class="twitter-tweet">
         <a href="https://twitter.com/<%= r.user.screen_name%>/status/<%= r.id_str%>">Tweets Loading...</a>
       </blockquote>
-      
+
     <%}); %>
 </div>
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> 
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
-  
+
 </body>
+<<<<<<< HEAD
+
+=======
+>>>>>>> 17c75114f7dc9507d2e50d23627aa8b8ee68b2ff
+
 </html>

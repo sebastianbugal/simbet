@@ -13,15 +13,21 @@
 <!--  Including jQuery, another tool chessboardjs uses:-->
 
   </head>
+  <%include ../partials/nav.ejs%>
   <div>
 <body>
+
+  <p>Room:</p>  <p id='room'><%=room%></p>
+  <p id='disconnect'></p>
+  <p id='Win'></p>
   <p id='u1'><p></p>
+  <p id='rating1'><p>Rating: </p>
   <div id="myBoard" style="width: 400px"></div>
   <p id='u2'><p></p>
+  <p id='rating2'><p>Rating: </p>
   </body>
 
-  <button id='join'>Join Room</button>
-  <button id='reset'>reset</button>
+  
 
 </div>
 
@@ -29,5 +35,6 @@
   <!-- <button id='start'>Start Game</button> -->
 <% include ../partials/chat.ejs %>
 <script src = "socket.io/socket.io.js"></script>
-<script src="./js/script.js"></script>
+<script id='chess-script' src="./js/script.js" data-room=<%=room%> data-first= <%=first%> ></script>
+
 </html>

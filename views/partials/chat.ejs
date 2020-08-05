@@ -62,20 +62,20 @@ background: #0197F6;
 
 <div class="chat-popup" id="myForm" style='display:none;'>
 
-<form  class="form-container">
+<form id="form-for-contain" class="form-container">
 <body class='bd'>
   <button class='close_chat' type='button' onclick='closeForm()'>Close Chat</button>
   <ul style="margin-top:50px; margin-bottom:50px" id="messages"></ul>
 </body>
 </form>
 <form  id="chatForm" class='frm'>
-  <input class='frm_in' id="txt" autocomplete="off" autofocusheroku logs="on" placeholder="type your message here..." /><button type='button' class='frm_btn'>Send</button>
+  <input class='frm_in' id="txt" autocomplete="off" autofocusheroku logs="on" placeholder="type your message here..." /><button type='submit' class='frm_btn'>Send</button>
 </form>
 </div>
 <button id='open_chat' class="open_chat" onclick="openForm()">Open Chat</button>
 <script>
 var socket = io.connect( window.location.hostname );
-// var socket = io.connect( 'http://localhost:3000');
+// var socket = io.connect( 'http://localhost:5000');
 $('#chatForm').submit(function(e){
     e.preventDefault();
     if($('#txt').val()!=''){
@@ -87,11 +87,12 @@ $('#chatForm').submit(function(e){
 // append the chat text message
 socket.on('chat_message', function(msg){
     $('#messages').append($('<li>').html(msg));
+    $("#form-for-contain").scrollTop(200000);
 });
 // append text if someone is online
-socket.on('is_online', function(username) {
-    $('#messages').append($('<li>').html(username));
-});
+// socket.on('is_online', function(username) {
+//     $('#messages').append($('<li>').html(username));
+// });
 // ask username
 socket.emit('username', null);
 

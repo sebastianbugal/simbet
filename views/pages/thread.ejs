@@ -13,7 +13,11 @@ var role = role;
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
-<% include ../partials/nav.ejs %>
+	<% if(session.role == ('a' || 'm')) { %>
+		<% include ../partials/adminNav.ejs %>
+	<% } else { %>
+		<%include ../partials/nav.ejs%>
+	<%} %>
 <hr>
 <div id="mainContainer">
 
@@ -54,7 +58,7 @@ var role = role;
 		[<a href="/catalog">Catalog</a>]
 		[<a href="#bottom">Bottom</a>]
 		[<a href="javascript:location.reload()">Update</a>]
-		[<input type="checkbox">Auto]
+		<!--[<input type="checkbox">Auto]-->
 		<span style="float: right">
 			<b>posts: </b><%=op.t_post_num%>
 			<!--<b>users: </b><%=//op.t_user_num%>-->
@@ -78,7 +82,11 @@ var role = role;
 			<div class="post">
 
 		<%}%>
-				<span class="username"><%=posts[i].p_username%></span>
+				<%if(block.includes(posts[i].p_username)){%>
+					<span class="username">BLOCKED USER</span>
+				<%} else { %>
+					<span class="username"><%=posts[i].p_username%></span>
+				<%}%>
 				<img src="https://countryflags.io/<%=posts[i].p_country_code%>/flat/16.png">
 				<%=posts[i].p_timestamp%>
 				<span class="hiddenLink" onclick="ready_new_reply(<%=posts[i].p_post_id%>)">No. <%=posts[i].p_post_id%></span>
@@ -87,18 +95,14 @@ var role = role;
 				<span class ="postMenuContainer">
 					<button class="postMenuBtn" onclick="toggle_post_menu(<%=posts[i].p_post_id%>)">v</button>
 					<div class="postMenu" id="postMenu<%=posts[i].p_post_id%>">
-						<a class="postMenuLink">hide post</a>
+						<a class="postMenuLink" onclick="hide_post('<%=posts[i].p_post_id%>')">hide post</a>
 						<% if(role == null) { %>
 							<a class="postMenuLink" href="/">log in to report</a>
 						<% } else { %>
 							<a class="postMenuLink" onclick="window.open('/report-post/<%=posts[i].p_post_id%>', 'reporting <%=posts[i].p_post_id%>', 'width=600px, height=600px, left=200px, top=200px')">report post</a>
 						<%}%>
-						<% if(role == 'j' || role == 'm' || role == 'a') { %>
-							<a href="/admin" class="postMenuLink">delete post</a>
-							<!--<a class="postMenuLink">ban request</a>-->
-							<% if(role != 'j'){%>
-								<a href="/admin" class="postMenuLink">ban user</a>
-							<%}%>
+						<% if(role == 'm' || role == 'a') { %>
+							<a href="/admin" class="postMenuLink">admin menu</a>
 						<% } %>
 					</div>
 				</span>
@@ -117,7 +121,11 @@ var role = role;
 			<%i++;%>
 		<%}%>
 				<br>
-				<span class="postText"><%-editedPText%></span>
+				<%if(block.includes(posts[i].p_username)){%>
+					<span class="postText">[Message has been blocked because you have user: "<%=posts[i].p_username%>" blocked.]</span>
+				<%} else { %>
+					<span class="postText"><%-editedPText%></span>
+				<%}%>
 			</div>
 		</div>
 		<%i++;%>
@@ -135,10 +143,10 @@ var role = role;
 		[<a href="/catalog">Catalog</a>]
 		[<a href="#top">Top</a>]
 		[<a href="javascript:location.reload()">Update</a>]
-		[<input type="checkbox">Auto]
+		<!--[<input type="checkbox">Auto]-->
 		<span style="float: right">
 			<b>posts: </b><%=op.t_post_num%>
-			<b>users: </b><%=op.t_user_num%>
+			<!--<b>users: </b><%=op.t_user_num%>-->
 		</span>
 	</div>
 	<hr>
@@ -217,5 +225,9 @@ function drag_element(elmnt) {
 	});
 }
 
+function hide_post(postId){
+	console.log(postId);
+	$("#p"+postId).css("display", "none");
+}
 </script>
 </html>
