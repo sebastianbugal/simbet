@@ -13,11 +13,12 @@ CREATE TABLE Users(
 	date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-alter table users add column rd numeric; 
+alter table users add column rd numeric;
 alter table users add column vol numeric;
 alter table users add following text[] DEFAULT '{}'::text[];
 
 alter table users add blocked text[] DEFAULT '{}'::text[];
+
 --Insert User
 INSERT INTO Users(
 	username, password

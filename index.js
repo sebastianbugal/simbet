@@ -17,11 +17,30 @@ var settings = {
 var ranking = new glicko.Glicko2( settings );
 const db = new Pool( {
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
+	//connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
+	user: 'postgres',
+  host: 'localhost',
+  database: 'postgres',
+  password: 'power',
+  port: 5432,
 } );
 const fetch = require( "node-fetch" );
 
 var bodyParser = require( "body-parser" );
+
+var nodemailer = require('nodemailer');
+var smtpTransport = require('nodemailer-smtp-transport');
+var transporter = nodemailer.createTransport(smtpTransport({
+  service: 'gmail',
+	host: 'smtp.gmail.com',
+  auth: {
+    user: 'splatwebservices@gmail.com',
+    pass: '276RedHorse!!!Donkey'
+  }
+}));
+var crypto = require('crypto');
+var format = require('biguint-format');
+var validator = require("email-validator");
 
 const app = express();
 var server = http.createServer( app );
@@ -83,6 +102,10 @@ app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more t
 app.get( "/", ( req, res ) => res.render( "pages/login" ) );
 
 app.get( "/login", ( req, res ) => res.render( "pages/login" ) );
+
+app.get( "/forgot", ( req, res ) => res.render( "pages/forgot" ) );
+
+app.get( "/emailTaken", ( req, res ) => res.render( "pages/emailTaken" ) );
 
 app.all( "/admin", ( req, res ) => {
 	// check for admin rights
@@ -544,25 +567,94 @@ app.post( "/registerForm", ( req, res ) => {
 			return res.render( "pages/usernameTaken" );
 		} else {
 			if( req.body.email ){
-				var email = req.body.email;
+				db.query( `SELECT email from users WHERE email = '${req.body.email}'`, ( err, result ) => {
+					if ( result.rowCount > 0 ) {
+						res.redirect("/emailTaken");
+					} else {
+						var email = req.body.email;
+						var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
+						db.query( query, ( err,result ) => {
+							if( result ) {
+								console.log( "Successful registration." );
+								res.redirect( "/login" );
+							} else if ( err ){
+								res.render( "pages/usernameTaken" );
+							} else {
+								res.send( "This register has failed idk why." );
+							}
+							return;
+						} );
+					}
+				})
 			} else {
 				var email = "";
+				var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
+				db.query( query, ( err,result ) => {
+					if( result ) {
+						console.log( "Successful registration." );
+						res.redirect( "/login" );
+					} else if ( err ){
+						res.render( "pages/usernameTaken" );
+					} else {
+						res.send( "This register has failed idk why." );
+					}
+					return;
+				} );
 			}
-			var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
-			db.query( query, ( err,result ) => {
-				if( result ) {
-					console.log( "Successful registration." );
-					res.redirect( "/login" );
-				} else if ( err ){
-					res.render( "pages/userNameTaken" );
-				} else {
-					res.send( "This register has failed idk why." );
-				}
-				return;
-			} );
 		}
 	} );
 } );
+
+app.post("/reset-email", (req, res) => {
+	var userEmail = req.body.email;
+	if(validator.validate(userEmail)){
+		const query = `SELECT username from users WHERE email = '${userEmail}'`;
+		db.query(query, (err, result) => {
+			if (result.rowCount > 0) {
+				var randy = crypto.randomBytes(6);
+				var num = format(randy, 'dec');
+				console.log(num);
+				const query2 = `UPDATE users SET resetToken = '${num}' WHERE email = '${userEmail}'`;
+				db.query(query2, (err,result) => {
+					if(err) {
+						console.log("Token not inserted");
+						res.redirect("/login");
+						return;
+					} else {
+						var emailToken = {
+							from: 'splatwebservices@gmail.com',
+							to: `${userEmail}`,
+							subject: `Password reset token for Splat`,
+							text: `Hello, \n You are receiving this email because you or somebody else has requested a password reset on splat. If this was not you,
+							check your security on all your accounts. \n If this was you then your password reset token is: ${num}. Enter this on the page that you
+							have been redirected to on Splat. \n Thank you for using Splat. \n From: The Splat Team.`
+						}
+						transporter.sendMail(emailToken, (err, info) => {
+							if (err) {
+								console.log(err);
+								res.redirect("/login");
+								return;
+							} else {
+								console.log(info.response);
+								res.render("pages/resetCheck");
+								return;
+							}
+						})
+					}
+				})
+			} else {
+				res.render("pages/noAccount");
+			}
+		})
+	} else {
+		res.render("pages/emailInvalid.ejs")
+	}
+});
+
+app.post("/reset-Check"), (res,req) => {
+	//filler for now
+	res.redirect("/login");
+});
 
 // admin posts
 app.post( "/deletePost", ( req, res )=> {
@@ -700,7 +792,7 @@ io.on( "connection", socket=>{
 
 		console.log( "sending user" );
 		io.to( data ).emit( "user_name",user_names );
-    
+
 	} );
 	socket.on( "join_room",data=>{
 		// if( NumClients( data )<2 ){
@@ -756,7 +848,7 @@ io.on( "connection", socket=>{
 
 		if( chess.game_over() ){
 			socket.to( "chess_room" ).emit( "game_over",true );
-			
+
 		}
 
 		if( ( chess.turn()==="w"&& data.search( /^b/ ) !== -1 && wid==socket.id ) ){
@@ -792,7 +884,7 @@ io.on( "connection", socket=>{
 		console.log( "expected w:",wid, "expected bid:" ,bid );
 
 		var moveColor = "white";
-		
+
 		if ( chess.turn() === "b" && socket.id==bid ){
 			console.log( "makes move:",bid );
 			moveColor = "black";
@@ -813,7 +905,7 @@ io.on( "connection", socket=>{
 		var status;
 		// checkmate?
 		console.log( cur );
-		
+
 
 		if ( chess.in_checkmate() ) {
 			status = "Game over, " + moveColor + " is in checkmate.";
@@ -848,18 +940,18 @@ io.on( "connection", socket=>{
 				if( moveColor=="white" ){
 					console.log( "white" );
 					match.push( [ white_player,black_player,1 ] );
-	
-	
+
+
 				}
 				else{
-				
+
 					console.log( "black" );
 					match.push( [ white_player,black_player,0 ] );
 
 				}
 				console.log( match );
 				ranking.updateRatings( match );
-	
+
 				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
 				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
@@ -950,7 +1042,7 @@ io.on( "connection", socket=>{
 	socket.on( "disconnect",( reason ) =>{
 
 		console.log( reason );
-		var cur=null; 
+		var cur=null;
 		var white_player;
 		var black_player;
 		var match=[];
@@ -1042,7 +1134,7 @@ io.on( "connection", socket=>{
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
 				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
-				
+
 			} );
 
 		}
@@ -1082,7 +1174,7 @@ app.post( "/join_room" , ( req,res )=>{
 	var a =req.body.room;
 	console.log( a );
 	res.redirect( "/chess"+req.body.room );
-  
+
 } );
 app.get( "/games",( req,res )=>{
 	if( req.session.loggedin ){
