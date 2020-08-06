@@ -1371,8 +1371,4 @@ app.get( "/logout",function( req,res ){
 } );
 server.listen( PORT, () => console.log( `Listening on ${ PORT }` ) );
 // app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
-<<<<<<< HEAD
-module.exports = server
-=======
 module.exports = app;
->>>>>>> 06bd285f800473f5a01742a6eb00f1e870eb2224
