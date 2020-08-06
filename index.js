@@ -78,7 +78,7 @@ var t_client = new Twitter( {
 
 app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more than 450 refreshes every 15 mins
 	if( req.session.loggedin ){
-		t_client.get( "search/tweets", { q: "#SplatForum", count:"5", include_entities:"true" }, function( error, tweets, response ) {
+		t_client.get( "https://api.twitter.com/search/tweets", { q: "#SplatForum", count:"5", include_entities:"true" }, function( error, tweets, response ) {
 			if( error ) throw error;
 			var tweets = { "statuses":tweets.statuses };
 			var query = "SELECT * FROM users ORDER BY chess_elo DESC";
