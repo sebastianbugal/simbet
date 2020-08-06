@@ -23,6 +23,7 @@
         <th>Ties</th>
         <th>Losses</th>
         <th>Elo</th>
+        <th>Share</th>
       </tr>
       <% var rank = 1; %>
       <% rows.forEach(function(r) { %>
@@ -33,6 +34,7 @@
         <td><%= r.ties %></td>
         <td><%= r.losses %></td>
         <td><%= r.chess_elo %></td>
+        <td>Tweet!</td>
       </tr>
       <% rank++;}); %>
       <div class="tweet_hash">

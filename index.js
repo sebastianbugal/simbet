@@ -95,6 +95,57 @@ app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more t
 } );
 
 
+app.get("/tweetAuth", (req, res) => {
+  // get request token
+  t_client.post("https://api.twitter.com/oauth/request_token", {oauth_callback:"http://localhost:1500/tweetAuthed", oauth_consumer_key:process.env.TWITTER_API_KEY }, function(error, response) {
+    if (error) {
+      // console.log("error");
+    }
+    var token = response.split('&')[0];
+    res.redirect(`https://api.twitter.com/oauth/authorize?${token}`);
+  } );
+
+});
+
+app.get("/tweetAuthed", (req, res) => {
+  var tokens = req.originalUrl.split('&');
+  tokens[0] = tokens[0].split('?')[1];
+  if (tokens[0].substring(0,6) == 'denied') {
+    res.redirect("/leaderBoards");
+  } else {
+    tokens[0] = tokens[0].split('=')[1];
+    tokens[1] = tokens[1].split('=')[1];
+  }
+
+  t_client.post("https://api.twitter.com/oauth/access_token", {oauth_consumer_key:process.env.TWITTER_API_KEY, oauth_token:tokens[0], oauth_verifier:tokens[1]}, function(error, response) {
+    console.log(response);
+    console.log("here");
+    response = response.split('&');
+    var access_tokens = {oauth_token: response[0].split('=')[1],
+                         oauth_token_secret: response[1].split('=')[1]};
+    db.query(`UPDATE Users SET oauth_token='${access_tokens.oauth_token}', oauth_token_secret='${access_tokens.oauth_token_secret}' WHERE username='${req.session.username}'`, ( err, result ) => {
+      if( err ){
+        console.log(err);
+        res.send(err);
+      }
+      var t_client_u = new Twitter( {
+        consumer_key: process.env.TWITTER_API_KEY,
+        consumer_secret: process.env.TWITTER_API_SECRET_KEY,
+        access_token_key: access_tokens.oauth_token,
+        access_token_secret: access_tokens.oauth_token_secret
+      });
+      t_client_u.post('statuses/update', {status: 'SCORE! #SplatForum'}, function(error, tweet, response) {
+        if (error) {
+          console.log(error);
+        }
+        console.log("Tweet Sent!");
+        res.redirect('/leaderBoards');
+      });
+    });
+  });
+});
+
+
 app.get( "/", ( req, res ) => res.render( "pages/login" ) );
 
 app.get( "/login", ( req, res ) => res.render( "pages/login" ) );
