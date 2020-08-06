@@ -57,6 +57,7 @@ io.use( function ( socket, next ) {
 // const sharedsession = require("express-socket.io-session");
 app.use( express.json() );
 app.use( express.urlencoded( { extended:false } ) );
+app.use("/", cors());
 app.use( express.static( path.join( __dirname, "public" ) ) );
 app.use( function ( req, res, next ) {
 	res.locals.session = req.session;   // session available in ejs
@@ -610,7 +611,7 @@ app.post( "/loginForm", ( req, res ) => {
           req.session.role = result.rows[0]["role"];
           var results = { "username": req.session.username };
           console.log( results );
-          res.redirect( "userView" );
+          res.redirect("userView");
         } else {
           return res.render( "pages/loginFailed" );
         }
@@ -804,7 +805,7 @@ app.all("/admin/bans", (req, res)=>{
       res.render("pages/bans.ejs", {'bans': result.rows});
     });
   } else{
-    res.redirect( "/" ); 
+    res.redirect( "/" );
     return;
   }
 });
@@ -920,7 +921,7 @@ io.on( "connection", socket=>{
 
 		console.log( "sending user" );
 		io.to( data ).emit( "user_name",user_names );
-    
+
 	} );
 	socket.on( "join_room",data=>{
 		// if( NumClients( data )<2 ){
@@ -976,7 +977,7 @@ io.on( "connection", socket=>{
 
 		if( chess.game_over() ){
 			socket.to( "chess_room" ).emit( "game_over",true );
-			
+
 		}
 
 		if( ( chess.turn()==="w"&& data.search( /^b/ ) !== -1 && wid==socket.id ) ){
@@ -1012,7 +1013,7 @@ io.on( "connection", socket=>{
 		console.log( "expected w:",wid, "expected bid:" ,bid );
 
 		var moveColor = "white";
-		
+
 		if ( chess.turn() === "b" && socket.id==bid ){
 			console.log( "makes move:",bid );
 			moveColor = "black";
@@ -1033,7 +1034,7 @@ io.on( "connection", socket=>{
 		var status;
 		// checkmate?
 		console.log( cur );
-		
+
 
 		if ( chess.in_checkmate() ) {
 			status = "Game over, " + moveColor + " is in checkmate.";
@@ -1083,7 +1084,7 @@ io.on( "connection", socket=>{
 
 					console.log( match );
 					ranking.updateRatings( match );
-					
+
 					var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, losses=losses+1 WHERE username='${cur.white_user}'`;
 					db.query( query_w, ( err, result ) => {console.log( err,result );} );
 					var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, wins=wins+1 WHERE username='${cur.black_user}'`;
@@ -1175,7 +1176,7 @@ io.on( "connection", socket=>{
 	socket.on( "disconnect",( reason ) =>{
 
 		console.log( reason );
-		var cur=null; 
+		var cur=null;
 		var white_player;
 		var black_player;
 		var match=[];
@@ -1267,7 +1268,7 @@ io.on( "connection", socket=>{
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
 				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, wins=wins+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
-				
+
 			} );
 
 		}
@@ -1356,3 +1357,4 @@ app.get( "/logout",function( req,res ){
 } );
 server.listen( PORT, () => console.log( `Listening on ${ PORT }` ) );
 // app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
+module.exports = app;
