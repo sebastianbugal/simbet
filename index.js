@@ -19,7 +19,7 @@ var settings = {
 var ranking = new glicko.Glicko2( settings );
 const db = new Pool( {
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-  connectionString: process.env.DATABASE_URL||"postgres://postgres:School276@localhost/splat"
+  connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
 } );
 const fetch = require( "node-fetch" );
 
@@ -80,7 +80,6 @@ app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more t
 	if( req.session.loggedin ){
 		t_client.get( "https://api.twitter.com/1.1/search/tweets.json", { q: "#SplatForum", result_type: 'recent'}, function( error, tweets, response ) {
       if( error ) throw error;
-      console.log(tweets);
       var tweets = { "statuses":tweets.statuses };
       console.log(tweets);
 			var query = "SELECT * FROM users ORDER BY chess_elo DESC";
@@ -143,7 +142,7 @@ app.get("/tweetAuthed", (req, res) => {
 					res.send( error );
         }
         var data = result.rows[0];
-        var t_status = `Username:${data.username}, Wins:${data.wins}, Ties:${data.ties}, Losses:${data.losses}, Elo:${data.chess_elo} \nJoin the fun at https://splatt.herokuapp.com/  \n#SplatForum`;
+        var t_status = `Username:${data.username}, Wins:${data.wins}, Ties:${data.ties}, Losses:${data.losses}, Elo:${data.chess_elo} #SplatForum`;
         t_client_u.post('statuses/update', {status: t_status}, function(error, tweet, response) {
           if (error) {
             console.log(error);
