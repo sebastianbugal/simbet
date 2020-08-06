@@ -2,6 +2,8 @@ const express = require( "express" ),
 	http = require( "http" );
 const path = require( "path" );
 const ses = require( "express-session" );
+
+var cors= require('cors')
 // const http=require('http').Server(express);
 const { Chess } = require( "./public/js/chess.js" );
 const PORT = process.env.PORT || 1500;
@@ -846,6 +848,7 @@ app.all( "/users", ( req,res )=>{
 	} );
 } );
 
+
 function NumClients( room ) {
 	var clients = io.adapter.rooms[room];
 	return Object.keys( clients ).length;
@@ -889,7 +892,7 @@ io.on( "connection", socket=>{
 
 		console.log( "sending user" );
 		io.to( data ).emit( "user_name",user_names );
-
+    
 	} );
 	socket.on( "join_room",data=>{
 		// if( NumClients( data )<2 ){
@@ -945,7 +948,7 @@ io.on( "connection", socket=>{
 
 		if( chess.game_over() ){
 			socket.to( "chess_room" ).emit( "game_over",true );
-
+			
 		}
 
 		if( ( chess.turn()==="w"&& data.search( /^b/ ) !== -1 && wid==socket.id ) ){
@@ -981,7 +984,7 @@ io.on( "connection", socket=>{
 		console.log( "expected w:",wid, "expected bid:" ,bid );
 
 		var moveColor = "white";
-
+		
 		if ( chess.turn() === "b" && socket.id==bid ){
 			console.log( "makes move:",bid );
 			moveColor = "black";
@@ -1002,7 +1005,7 @@ io.on( "connection", socket=>{
 		var status;
 		// checkmate?
 		console.log( cur );
-
+		
 
 		if ( chess.in_checkmate() ) {
 			status = "Game over, " + moveColor + " is in checkmate.";
@@ -1038,21 +1041,26 @@ io.on( "connection", socket=>{
 					console.log( "white" );
 					match.push( [ white_player,black_player,1 ] );
 
+					console.log( match );
+					ranking.updateRatings( match );
 
+					var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, wins=wins+1 WHERE username='${cur.white_user}'`;
+					db.query( query_w, ( err, result ) => {console.log( err,result );} );
+					var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, losses=losses+1 WHERE username='${cur.black_user}'`;
+					db.query( query_b, ( err, result ) => {console.log( err,result );} );
 				}
 				else{
-
 					console.log( "black" );
 					match.push( [ white_player,black_player,0 ] );
 
+					console.log( match );
+					ranking.updateRatings( match );
+					
+					var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, losses=losses+1 WHERE username='${cur.white_user}'`;
+					db.query( query_w, ( err, result ) => {console.log( err,result );} );
+					var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, wins=wins+1 WHERE username='${cur.black_user}'`;
+					db.query( query_b, ( err, result ) => {console.log( err,result );} );
 				}
-				console.log( match );
-				ranking.updateRatings( match );
-
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
-				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
-				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
 
 			io.in(cur.room).emit('close_room',(moveColor+' Wins'))
@@ -1104,9 +1112,9 @@ io.on( "connection", socket=>{
 				match.push( [ white_player,black_player,0.5 ] );
 				console.log( match );
 				ranking.updateRatings( match );
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
+				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, ties=ties+1 WHERE username='${cur.white_user}'`;
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
+				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()},ties=ties+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
 			io.in(cur.room).emit('close_room','Draw')
@@ -1139,7 +1147,7 @@ io.on( "connection", socket=>{
 	socket.on( "disconnect",( reason ) =>{
 
 		console.log( reason );
-		var cur=null;
+		var cur=null; 
 		var white_player;
 		var black_player;
 		var match=[];
@@ -1194,9 +1202,9 @@ io.on( "connection", socket=>{
 				} );
 				match.push( [ white_player,black_player,1 ] );
 				ranking.updateRatings( match );
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
+				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, wins=wins+1 WHERE username='${cur.white_user}'`;
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
+				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, losses=losses+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
 		}
@@ -1227,11 +1235,11 @@ io.on( "connection", socket=>{
 				} );
 				match.push( [ white_player,black_player,0 ] );
 				ranking.updateRatings( match );
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
+				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, losses=losses+1 WHERE username='${cur.white_user}'`;
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
+				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, wins=wins+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
-
+				
 			} );
 
 		}
@@ -1252,9 +1260,9 @@ io.on( "connection", socket=>{
 			  }
 		  })
 		  console.log(rooms, r)
-	}
-	} );
-} );
+		}
+	});
+});
 
 app.get( "/rooms", ( req,res )=>{
 	if(req.session.loggedin){
