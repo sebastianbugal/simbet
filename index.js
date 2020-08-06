@@ -2,6 +2,7 @@ const express = require( "express" ),
 	http = require( "http" );
 const path = require( "path" );
 const ses = require( "express-session" );
+var cors = require('cors')
 // const http=require('http').Server(express);
 const { Chess } = require( "./public/js/chess.js" );
 const PORT = process.env.PORT || 1500;
@@ -22,20 +23,6 @@ const db = new Pool( {
 const fetch = require( "node-fetch" );
 
 var bodyParser = require( "body-parser" );
-
-var nodemailer = require('nodemailer');
-var smtpTransport = require('nodemailer-smtp-transport');
-var transporter = nodemailer.createTransport(smtpTransport({
-  service: 'gmail',
-	host: 'smtp.gmail.com',
-  auth: {
-    user: 'splatwebservices@gmail.com',
-    pass: '276RedHorse!!!Donkey'
-  }
-}));
-var crypto = require('crypto');
-var format = require('biguint-format');
-var validator = require("email-validator");
 
 const app = express();
 var server = http.createServer( app );
@@ -60,6 +47,7 @@ app.use( function ( req, res, next ) {
 	res.locals.session = req.session;   // session available in ejs
 	next();
 } );
+app.use('/', cors());
 app.set( "views", path.join( __dirname, "views" ) );
 app.set( "view engine", "ejs" );
 
@@ -97,10 +85,6 @@ app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more t
 app.get( "/", ( req, res ) => res.render( "pages/login" ) );
 
 app.get( "/login", ( req, res ) => res.render( "pages/login" ) );
-
-app.get( "/forgot", ( req, res ) => res.render( "pages/forgot" ) );
-
-app.get( "/emailTaken", ( req, res ) => res.render( "pages/emailTaken" ) );
 
 app.all( "/admin", ( req, res ) => {
 	// check for admin rights
@@ -562,137 +546,25 @@ app.post( "/registerForm", ( req, res ) => {
 			return res.render( "pages/usernameTaken" );
 		} else {
 			if( req.body.email ){
-				db.query( `SELECT email from users WHERE email = '${req.body.email}'`, ( err, result ) => {
-					if ( result.rowCount > 0 ) {
-						res.redirect("/emailTaken");
-					} else {
-						var email = req.body.email;
-						var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
-						db.query( query, ( err,result ) => {
-							if( result ) {
-								console.log( "Successful registration." );
-								res.redirect( "/login" );
-							} else if ( err ){
-								res.render( "pages/usernameTaken" );
-							} else {
-								res.send( "This register has failed idk why." );
-							}
-							return;
-						} );
-					}
-				})
+				var email = req.body.email;
 			} else {
 				var email = "";
-				var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
-				db.query( query, ( err,result ) => {
-					if( result ) {
-						console.log( "Successful registration." );
-						res.redirect( "/login" );
-					} else if ( err ){
-						res.render( "pages/usernameTaken" );
-					} else {
-						res.send( "This register has failed idk why." );
-					}
-					return;
-				} );
 			}
+			var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
+			db.query( query, ( err,result ) => {
+				if( result ) {
+					console.log( "Successful registration." );
+					res.redirect( "/login" );
+				} else if ( err ){
+					res.render( "pages/userNameTaken" );
+				} else {
+					res.send( "This register has failed idk why." );
+				}
+				return;
+			} );
 		}
 	} );
 } );
-
-app.post("/reset-email", (req, res) => {
-	var userEmail = req.body.email;
-	if(validator.validate(userEmail)){
-		const query = `SELECT username from users WHERE email = '${userEmail}'`;
-		db.query(query, (err, result) => {
-			if (result.rowCount > 0) {
-				var randy = crypto.randomBytes(6);
-				var stringnum = format(randy, 'dec');
-				var num = BigInt(stringnum);
-				const query2 = `UPDATE users SET resetToken = '${num}' WHERE email = '${userEmail}'`;
-				db.query(query2, (err,result) => {
-					if(err) {
-						console.log("Token not inserted");
-						res.redirect("/login");
-						return;
-					} else {
-						var emailToken = {
-							from: 'splatwebservices@gmail.com',
-							to: `${userEmail}`,
-							subject: `Password reset token for Splat`,
-							text: `Hello,
-You are receiving this email because you or somebody else has requested a password reset on splat. If this was not you, check your security on all your accounts.
-If this was you then your password reset token is: ${num}. Enter this on the page that you have been redirected to on Splat.
-Thank you for using Splat.
-From: The Splat Team.`
-						}
-						transporter.sendMail(emailToken, function(err, info){
-							if (err) {
-								console.log(err);
-								res.redirect("/login");
-								return;
-							} else {
-								res.render("pages/resetCheck");
-								return;
-							}
-						})
-					}
-				})
-			} else {
-				res.render("pages/noAccount");
-			}
-		})
-	} else {
-		res.render("pages/emailInvalid.ejs")
-	}
-});
-
-app.post("/reset-check", (req, res)=> {
-	var token = req.body.numericalToken;
-	const query = `SELECT username FROM users WHERE resetToken = '${token}'`;
-	db.query(query, (err, result) => {
-		if(err){
-			console.log(err);
-		} else if (result.rowCount == 1){
-			const query2 = `UPDATE users SET resetToken = NULL WHERE resetToken = ${token}`;
-			db.query(query2, (err2,result2) => {
-				if(err2){
-					console.log(err2);
-				} else {
-					user = { 'rows': result.rows}
-					res.render("pages/resetPassword", user);
-				}
-			})
-		} else {
-
-		}
-	})
-});
-
-app.post("/reset-password", (req, res)=> {
-	var pass1 = req.body.password1;
-	var pass2 = req.body.password2;
-	var usernameChange = req.body.user;
-	if(pass1 == pass2){
-		const query = `UPDATE users SET password = '${pass1}' WHERE username = '${usernameChange}'`;
-		db.query(query, (err, result) => {
-			if(err){
-				console.log(err);
-			} else {
-				res.render("pages/resetPassSuccess");
-			}
-		});
-	} else {
-		db.query(`SELECT username FROM users WHERE username = '${usernameChange}'`, (err,result)=> {
-			if(err){
-				console.log(err);
-			} else {
-				user = { 'rows': result.rows}
-				res.render("pages/resetPassword", user);
-			}
-		})
-	}
-});
 
 // admin posts
 app.post( "/deletePost", ( req, res )=> {
@@ -830,7 +702,7 @@ io.on( "connection", socket=>{
 
 		console.log( "sending user" );
 		io.to( data ).emit( "user_name",user_names );
-
+    
 	} );
 	socket.on( "join_room",data=>{
 		// if( NumClients( data )<2 ){
@@ -886,7 +758,7 @@ io.on( "connection", socket=>{
 
 		if( chess.game_over() ){
 			socket.to( "chess_room" ).emit( "game_over",true );
-
+			
 		}
 
 		if( ( chess.turn()==="w"&& data.search( /^b/ ) !== -1 && wid==socket.id ) ){
@@ -922,7 +794,7 @@ io.on( "connection", socket=>{
 		console.log( "expected w:",wid, "expected bid:" ,bid );
 
 		var moveColor = "white";
-
+		
 		if ( chess.turn() === "b" && socket.id==bid ){
 			console.log( "makes move:",bid );
 			moveColor = "black";
@@ -943,7 +815,7 @@ io.on( "connection", socket=>{
 		var status;
 		// checkmate?
 		console.log( cur );
-
+		
 
 		if ( chess.in_checkmate() ) {
 			status = "Game over, " + moveColor + " is in checkmate.";
@@ -979,21 +851,26 @@ io.on( "connection", socket=>{
 					console.log( "white" );
 					match.push( [ white_player,black_player,1 ] );
 
+					console.log( match );
+					ranking.updateRatings( match );
 
+					var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, wins=wins+1 WHERE username='${cur.white_user}'`;
+					db.query( query_w, ( err, result ) => {console.log( err,result );} );
+					var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, losses=losses+1 WHERE username='${cur.black_user}'`;
+					db.query( query_b, ( err, result ) => {console.log( err,result );} );
 				}
 				else{
-
 					console.log( "black" );
 					match.push( [ white_player,black_player,0 ] );
 
+					console.log( match );
+					ranking.updateRatings( match );
+					
+					var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, losses=losses+1 WHERE username='${cur.white_user}'`;
+					db.query( query_w, ( err, result ) => {console.log( err,result );} );
+					var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, wins=wins+1 WHERE username='${cur.black_user}'`;
+					db.query( query_b, ( err, result ) => {console.log( err,result );} );
 				}
-				console.log( match );
-				ranking.updateRatings( match );
-
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
-				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
-				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
 
 			io.in(cur.room).emit('close_room',(moveColor+' Wins'))
@@ -1045,9 +922,9 @@ io.on( "connection", socket=>{
 				match.push( [ white_player,black_player,0.5 ] );
 				console.log( match );
 				ranking.updateRatings( match );
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
+				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, ties=ties+1 WHERE username='${cur.white_user}'`;
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
+				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()},ties=ties+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
 			io.in(cur.room).emit('close_room','Draw')
@@ -1080,7 +957,7 @@ io.on( "connection", socket=>{
 	socket.on( "disconnect",( reason ) =>{
 
 		console.log( reason );
-		var cur=null;
+		var cur=null; 
 		var white_player;
 		var black_player;
 		var match=[];
@@ -1135,9 +1012,9 @@ io.on( "connection", socket=>{
 				} );
 				match.push( [ white_player,black_player,1 ] );
 				ranking.updateRatings( match );
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
+				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, wins=wins+1 WHERE username='${cur.white_user}'`;
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
+				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, losses=losses+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
 		}
@@ -1168,11 +1045,11 @@ io.on( "connection", socket=>{
 				} );
 				match.push( [ white_player,black_player,0 ] );
 				ranking.updateRatings( match );
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
+				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, losses=losses+1 WHERE username='${cur.white_user}'`;
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
+				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, wins=wins+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
-
+				
 			} );
 
 		}
@@ -1212,7 +1089,7 @@ app.post( "/join_room" , ( req,res )=>{
 	var a =req.body.room;
 	console.log( a );
 	res.redirect( "/chess"+req.body.room );
-
+  
 } );
 app.get( "/games",( req,res )=>{
 	if( req.session.loggedin ){
@@ -1261,3 +1138,4 @@ app.get( "/logout",function( req,res ){
 } );
 server.listen( PORT, () => console.log( `Listening on ${ PORT }` ) );
 // app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
+module.exports=app;
