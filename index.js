@@ -17,8 +17,7 @@ var settings = {
 var ranking = new glicko.Glicko2( settings );
 const db = new Pool( {
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-  // connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
-  connectionString: process.env.DATABASE_URL||'postgres://postgres:School276@localhost/splat'
+  connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
 } );
 const fetch = require( "node-fetch" );
 
@@ -97,7 +96,7 @@ app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more t
 
 app.get("/tweetAuth", (req, res) => {
   // get request token
-  t_client.post("https://api.twitter.com/oauth/request_token", {oauth_callback:"http://localhost:1500/tweetAuthed", oauth_consumer_key:process.env.TWITTER_API_KEY }, function(error, response) {
+  t_client.post("https://api.twitter.com/oauth/request_token", {oauth_callback:"https://splatt.herokuapp.com/tweetAuthed", oauth_consumer_key:process.env.TWITTER_API_KEY }, function(error, response) {
     if (error) {
       // console.log("error");
     }
