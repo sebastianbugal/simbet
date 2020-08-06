@@ -80,7 +80,7 @@ app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more t
 		t_client.get( "search/tweets", { q: "#SplatForum", count:"5", include_entities:"true" }, function( error, tweets, response ) {
 			if( error ) throw error;
 			var tweets = { "statuses":tweets.statuses };
-			var query = "SELECT * FROM users, ranking WHERE username=uid AND game_type='chess' ORDER BY chess_elo DESC";
+			var query = "SELECT * FROM users ORDER BY chess_elo DESC";
 			db.query( query, ( err, result ) => {
 				if( err ){
 					res.send( error );
@@ -134,7 +134,7 @@ app.get("/tweetAuthed", (req, res) => {
         access_token_key: access_tokens.oauth_token,
         access_token_secret: access_tokens.oauth_token_secret
       });
-      var query = `SELECT * FROM users, ranking WHERE username='${req.session.username}' AND username=uid AND game_type='chess' ORDER BY chess_elo DESC`;
+      var query = `SELECT * FROM users WHERE username='${req.session.username}' ORDER BY chess_elo DESC`;
 			db.query( query, ( err, result ) => {
 				if( err ){
 					res.send( error );
@@ -631,12 +631,6 @@ app.post( "/registerForm", ( req, res ) => {
 						db.query( query, ( err,result ) => {
 							if( result ) {
                 console.log( "Successful registration." );
-                // create chess match data
-                db.query( `INSERT INTO Ranking VALUES('${req.body.username}', 'chess')`, (error, res) => {
-                  if(error){
-                    console.log(error);
-                  }
-          });
 								res.redirect( "/login" );
 							} else if ( err ){
 								res.render( "pages/usernameTaken" );
@@ -653,12 +647,6 @@ app.post( "/registerForm", ( req, res ) => {
 				db.query( query, ( err,result ) => {
 					if( result ) {
             console.log( "Successful registration." );
-            // create chess match data
-            db.query( `INSERT INTO Ranking VALUES('${req.body.username}', 'chess')`, (error, res) => {
-              if(error){
-                console.log(error);
-              }
-          });
 						res.redirect( "/login" );
 					} else if ( err ){
 						res.render( "pages/usernameTaken" );

@@ -19,6 +19,10 @@ alter table users add following text[] DEFAULT '{}'::text[];
 alter table users add blocked text[] DEFAULT '{}'::text[];
 alter table users add resetToken bigint;
 
+alter table users add wins INTEGER default 0;
+alter table users add losses INTEGER default 0;
+alter table users add ties INTEGER default 0;
+
 -- twitter user auth tokens
 alter table users add oauth_token VARCHAR(80);
 alter table users add oauth_token_secret VARCHAR(80);
@@ -87,26 +91,6 @@ CREATE TABLE Replies(
 	parent_id SERIAL REFERENCES posts(p_post_id),
 	reply_id SERIAL REFERENCES posts(p_post_id)
 );
-
--- table holding player match history
-CREATE TABLE Ranking(
-	uid VARCHAR(18) REFERENCES Users(username) NOT NULL,
-	game_type VARCHAR(16) NOT NULL,
-	is_tie BOOL DEFAULT 'f',
-	wins INTEGER DEFAULT 0,
-	ties INTEGER DEFAULT 0,
-	losses INTEGER DEFAULT 0
-);
-
--- test data for matches
-INSERT INTO Ranking VALUES('test', 'chess', 'f', 2, 0 ,3);
-INSERT INTO Ranking VALUES('admin', 'chess', 'f', 3, 0 ,2);
-
--- Select player and score data
-Select U.username, chess_elo -- FINISH THIS
-FROM Users U, Match M 
-WHERE U.username = M.player_1 OR U.username = M.player_2 
-ORDER BY chess_elo;
 
 
 -- post a thread function and return the new id
