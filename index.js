@@ -139,7 +139,7 @@ app.get("/tweetAuthed", (req, res) => {
 					res.send( error );
         }
         var data = result.rows[0];
-        var t_status = `Username:${data.username}, Wins:${data.wins}, Ties:${data.ties}, Losses:${data.losses}, Elo:${data.chess_elo} \nJoin the fun at https://splatt.herokuapp.com/ #SplatForum`;
+        var t_status = `Username:${data.username}, Wins:${data.wins}, Ties:${data.ties}, Losses:${data.losses}, Elo:${data.chess_elo} \nJoin the fun at https://splatt.herokuapp.com #SplatForum`;
         t_client_u.post('statuses/update', {status: t_status}, function(error, tweet, response) {
           if (error) {
             console.log(error);
