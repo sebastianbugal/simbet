@@ -112,6 +112,7 @@ app.get("/tweetAuthed", (req, res) => {
   tokens[0] = tokens[0].split('?')[1];
   if (tokens[0].substring(0,6) == 'denied') {
     res.redirect("/leaderBoards");
+    return;
   } else {
     tokens[0] = tokens[0].split('=')[1];
     tokens[1] = tokens[1].split('=')[1];
@@ -119,7 +120,6 @@ app.get("/tweetAuthed", (req, res) => {
 
   t_client.post("https://api.twitter.com/oauth/access_token", {oauth_consumer_key:process.env.TWITTER_API_KEY, oauth_token:tokens[0], oauth_verifier:tokens[1]}, function(error, response) {
     console.log(response);
-    console.log("here");
     response = response.split('&');
     var access_tokens = {oauth_token: response[0].split('=')[1],
                          oauth_token_secret: response[1].split('=')[1]};
@@ -134,12 +134,20 @@ app.get("/tweetAuthed", (req, res) => {
         access_token_key: access_tokens.oauth_token,
         access_token_secret: access_tokens.oauth_token_secret
       });
-      t_client_u.post('statuses/update', {status: 'SCORE! #SplatForum'}, function(error, tweet, response) {
-        if (error) {
-          console.log(error);
+      var query = `SELECT * FROM users, ranking WHERE username='${req.session.username}' AND username=uid AND game_type='chess' ORDER BY chess_elo DESC`;
+			db.query( query, ( err, result ) => {
+				if( err ){
+					res.send( error );
         }
-        console.log("Tweet Sent!");
-        res.redirect('/leaderBoards');
+        var data = result.rows[0];
+        var t_status = `Username:${data.username}, Wins:${data.wins}, Ties:${data.ties}, Losses:${data.losses}, Elo:${data.chess_elo} #SplatForum`;
+        t_client_u.post('statuses/update', {status: t_status}, function(error, tweet, response) {
+          if (error) {
+            console.log(error);
+          }
+          console.log("Tweet Sent!");
+          res.redirect('/leaderBoards');
+      });
       });
     });
   });

@@ -23,7 +23,6 @@
         <th>Ties</th>
         <th>Losses</th>
         <th>Elo</th>
-        <th>Share</th>
       </tr>
       <% var rank = 1; %>
       <% rows.forEach(function(r) { %>
@@ -34,14 +33,15 @@
         <td><%= r.ties %></td>
         <td><%= r.losses %></td>
         <td><%= r.chess_elo %></td>
-        <td>Tweet!</td>
       </tr>
       <% rank++;}); %>
       <div class="tweet_hash">
         <a href="https://twitter.com/intent/tweet?button_hashtag=SplatForum&ref_src=twsrc%5Etfw" class="twitter-hashtag-button" data-show-count="false">Tweet #SplatForum</a>
       </div>
     </table>
-
+    <div class="tweet_score">
+      <a href="/tweetAuth">Tweet your Score!</a>
+    </div>
 
   <div class="embedded_feed">
     <script id="twitter-wjs" type="text/javascript" async defer src="//platform.twitter.com/widgets.js">
