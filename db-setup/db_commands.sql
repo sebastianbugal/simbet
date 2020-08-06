@@ -17,7 +17,7 @@ alter table users add column rd numeric;
 alter table users add column vol numeric;
 alter table users add following text[] DEFAULT '{}'::text[];
 alter table users add blocked text[] DEFAULT '{}'::text[];
-alter table users add resetToken VARCHAR;
+alter table users add resetToken bigint;
 
 -- twitter user auth tokens
 alter table users add oauth_token VARCHAR(80);

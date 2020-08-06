@@ -10,9 +10,34 @@
 }
 
 .forgotPage {
+  text-align: center;
   position: fixed;
   width: 400px;
   height: 180px;
+  top: 50%;
+  left: 45%;
+  margin: -150px 0 0 -150px;
+  border-radius: 12px;
+  border: 2px solid #228B22;
+}
+
+.resetPage {
+  text-align: center;
+  position: fixed;
+  width: 400px;
+  height: 250px;
+  top: 50%;
+  left: 45%;
+  margin: -150px 0 0 -150px;
+  border-radius: 12px;
+  border: 2px solid #228B22;
+}
+
+.successPage {
+  text-align: center;
+  position: fixed;
+  width: 400px;
+  height: 120px;
   top: 50%;
   left: 45%;
   margin: -150px 0 0 -150px;
