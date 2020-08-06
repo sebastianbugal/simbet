@@ -11,7 +11,7 @@ CREATE TABLE Users(
 	password VARCHAR(30) NOT NULL,
 	role CHAR DEFAULT 'u',
 	date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	
+
 	accessible text[] DEFAULT '{main}'::text[],
 
 	rd numeric,
@@ -38,9 +38,9 @@ INSERT INTO Users(
 
 --Insert admin for testing
 INSERT INTO Users(
-	username, password, role
+	username, password, role, email
 ) VALUES(
-	'admin', 'root', 'a'
+	'admin', 'root', 'a', 'splatwebservices@gmail.com'
 );
 -- Table for private forums
 CREATE TABLE Forums(
