@@ -6,7 +6,7 @@ const ses = require( "express-session" );
 var cors= require('cors')
 // const http=require('http').Server(express);
 const { Chess } = require( "./public/js/chess.js" );
-const PORT = process.env.PORT || 1500;
+const PORT = process.env.PORT || 1200;
 const { Pool } = require( "pg" );
 var rooms=[];
 const glicko=require( "glicko2" );
@@ -926,7 +926,7 @@ io.on( "connection", socket=>{
 		var cur;
 		rooms.forEach( ( r )=>{
 			if( r.room==data && r.clientnum<2 ){
-				cur=r;
+				
 				if( r.white_socket==null ){
 					r.white_socket=socket.id;
 				}
@@ -936,15 +936,20 @@ io.on( "connection", socket=>{
 				wid=r.white_socket;
 				bid=r.black_socket;
 				r.black_user=req.session.username;
-				r.clientnum++;
 				r.running=true;
+				r.chess.reset()
 			}
+			r.clientnum++;
+			cur=r;
 
 		} );
-
+		if(cur.clientnum>2){
+			socket.emit('room_full')
+		}
 		socket.join( data );
 		console.log( "user",socket.id,"joined" );
 		console.log( wid,bid );
+		
 		// if( wid==socket.id ){
 		// 	console.log( "wid is: ",wid,"id gotten: ",socket.id );
 		// 	// side='white';
@@ -965,6 +970,7 @@ io.on( "connection", socket=>{
 		console.log( "sending user" );
 		io.in( data ).emit( "user_name",user_names );
 		console.log( data );
+		io.in(data).emit('fen',cur.chess.fen())
 	} );
 	socket.on( "start",function(){
 		console.log( "working" );
@@ -1300,7 +1306,15 @@ app.get( "/rooms", ( req,res )=>{
 	}
 } );
 app.post( "/create_room" , ( req,res )=>{
-	res.redirect( "/chess"+req.session.username );
+	var room=req.session.username;
+	// us=[]
+	// ob = {'room':room}
+	// us.push(ob)
+	// res.json(us)
+	res.redirect( "/chess"+room );
+	
+	
+
 } );
 app.post( "/join_room" , ( req,res )=>{
 	var a =req.body.room;
@@ -1355,3 +1369,4 @@ app.get( "/logout",function( req,res ){
 } );
 server.listen( PORT, () => console.log( `Listening on ${ PORT }` ) );
 // app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
+module.exports = server

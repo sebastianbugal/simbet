@@ -1,21 +1,15 @@
-// NOTE: this example uses the chess.js library:
-// https://github.com/jhlywa/chess.js
+
 console.log( "color" );
 var first = document.getElementById( "chess-script" ).getAttribute( "data-first" );
 var room = document.getElementById( "chess-script" ).getAttribute( "data-room" );
 
 var board = null;
-var socket = io.connect( window.location.hostname);
-// var socket = io.connect( "http://localhost:1500" );
+// var socket = io.connect( window.location.hostname);
+var socket = io.connect( "http://localhost:1200" );
 var color;
 var ublack;
 var uwhite;
 
-// socket.on("col", function (data) {
-//     color=data;
-//     console.log(color);
-// });
-// console.log( room );
 console.log( first );
 if( first=="true" ){
 	console.log( "room joining first",room );
@@ -24,18 +18,9 @@ if( first=="true" ){
 else{
 	console.log( "room joining second" );
 	socket.emit( "join_room",room );
+
 }
 
-// document.getElementById( "join" ).addEventListener( "click", function(){
-// 	socket.emit( "join_room", null );
-// } );
-// document.getElementById( "reset" ).addEventListener( "click", function(){
-// 	socket.emit( "reset", null );
-// } );
-
-// document.getElementById("start").addEventListener("click", function(){
-//   socket.emit('start', null);
-// });
 socket.on( "opponent_disconnect", function(){
 	document.getElementById( "disconnect" ).textContent="Opponent Disconnected and forfeits the match";
 	setTimeout( function(){
@@ -48,6 +33,9 @@ socket.on('close_room',data=>{
 	setTimeout(function(){
 		window.location.href="/rooms"
 	},3000);
+})
+socket.on('room_full',function(){
+	window.location.href="/rooms"
 })
 function onDragStart ( source, piece, position, orientation ) {
 	// socket.emit('drag_start',piece);
