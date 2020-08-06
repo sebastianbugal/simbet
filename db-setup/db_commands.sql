@@ -10,22 +10,24 @@ CREATE TABLE Users(
 	checkers_elo INT ,
 	password VARCHAR(30) NOT NULL,
 	role CHAR DEFAULT 'u',
-	date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	
+	accessible text[] DEFAULT '{main}'::text[],
+
+	rd numeric,
+	vol numeric,
+	following text[] DEFAULT '{}'::text[],
+	blocked text[] DEFAULT '{}'::text[],
+	resettoken bigint,
+
+	wins INTEGER default 0,
+	losses INTEGER default 0,
+	ties INTEGER default 0,
+
+	-- twitter user auth tokens
+	oauth_token VARCHAR(80),
+	oauth_token_secret VARCHAR(80)
 );
-
-alter table users add column rd numeric;
-alter table users add column vol numeric;
-alter table users add following text[] DEFAULT '{}'::text[];
-alter table users add blocked text[] DEFAULT '{}'::text[];
-alter table users add resetToken bigint;
-
-alter table users add wins INTEGER default 0;
-alter table users add losses INTEGER default 0;
-alter table users add ties INTEGER default 0;
-
--- twitter user auth tokens
-alter table users add oauth_token VARCHAR(80);
-alter table users add oauth_token_secret VARCHAR(80);
 
 --Insert User
 INSERT INTO Users(
@@ -54,8 +56,6 @@ INSERT INTO Forums(
 	'main', 'main', 'test'
 );
 
-alter table users add accessible text[] DEFAULT '{main}'::text[];
-
 -- TEXTBOARD
 -- threads are inherit from posts
 -- t_post_id references posts, impossible to
@@ -69,13 +69,13 @@ CREATE TABLE Posts(
 	p_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	p_thread_id INT DEFAULT -1, -- -1 indicates its a thread
 	p_country_code CHAR(2) DEFAULT 'AX',
+	p_banned_for BOOLEAN DEFAULT 'f',
+
 	-- thread data
 	t_subject VARCHAR(120),
 	t_forum VARCHAR(18) DEFAULT 'main',
 	t_pinned BOOLEAN DEFAULT 'f',
-	t_active BOOLEAN DEFAULT 't',
 	t_bump_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	t_user_num INT DEFAULT 1,
 	t_post_num INT DEFAULT 1
 );
 
@@ -90,6 +90,16 @@ CREATE TABLE Reports(
 CREATE TABLE Replies(
 	parent_id SERIAL REFERENCES posts(p_post_id),
 	reply_id SERIAL REFERENCES posts(p_post_id)
+);
+
+-- table for holding bans
+CREATE TABLE Bans(
+	b_id SERIAL PRIMARY KEY,
+	b_username VARCHAR(18),
+	b_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	b_end TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	b_rule VARCHAR(18),
+	b_post_id INT
 );
 
 
@@ -133,35 +143,13 @@ BEGIN
 	VALUES(
 		in_p_thread_id, in_p_username, in_p_text, in_p_country_code);
 	SELECT currval(pg_get_serial_sequence('Posts', 'p_post_id')) INTO new_post_id;
-	-- sees if user has already posted
-	IF EXISTS(
-		SELECT 1 FROM posts
-		WHERE
-		p_username = in_p_username
-		AND (p_thread_id = in_p_thread_id OR p_post_id = in_p_thread_id)
-	)
-	THEN
-		RAISE INFO 'not a new user';
-		fresh_user := 0;
-	END IF;
-	-- increments post number and user number
+	-- increments post number
 	UPDATE posts
 	SET t_post_num = t_post_num + 1,
-	t_user_num = t_user_num + fresh_user
 	WHERE p_post_id = in_p_thread_id;
 	RETURN new_post_id;
 END;
 $$ LANGUAGE plpgsql;
-
--- update thread stats when a new post is posted in the thread
-UPDATE Threads
-SET
-t_bump_time = ${tBumpTime},
-t_post_num = ${tPostNum},
-t_user_num = ${tUserNum}
-WHERE
-thread_id = ${threadId};
-
 
 -- delete a post function
 CREATE OR REPLACE FUNCTION delete_post(

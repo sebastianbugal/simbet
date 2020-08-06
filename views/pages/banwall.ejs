@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>You have been banned.</title>
+<link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
+<link rel="stylesheet" type="text/css" href="/stylesheets/banwall.css">
+<% include ../partials/header.ejs %>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+	<div>
+	<h2>You are banned.</h2>
+	<%if(row[0]){%>
+		Your account: <b>(<%=row[0].b_username%>)</b> is banned for 
+		<%if(row[0].b_post_id){%>
+			<b><%=row[0].b_post_id%></b>. <br>
+		<%}else{%>
+			<b>an unspecified post</b>. <br>
+		<%}%>
+	 	Reason: <b><%=row[0].b_rule%></b>. <br>
+	 	Banned on: <b> <%=row[0].b_start%></b> <br>
+	 	Expired on: <b><%=row[0].b_end%>.</b> <br>
+	<%}else{ %>
+		Internal Server error: You should not be on this page.	
+	<%}%>
+	</div>
+</body>
+</html>

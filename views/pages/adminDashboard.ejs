@@ -22,27 +22,26 @@
             <input type="number" name="pid" placeholder="post id">
             <input type="submit" value="Delete Post">
         </form>
-        <!--
-        <form action="/lockThread" method="post">
-            Lock Thread:
-            <input type="number" name="pid" placeholder="thread id">
-            <input type="submit" value="Lock Thread"> <br>
-        </form>
-        <form action="/muteUser" method="post">
-            Mute User:
+        <form action="/deleteUser" method="post">
+            Delete User and Related Content:
             <input type="text" name="username" placeholder="username">
-            <input type="submit" value="Mute User"> <br>
+            <input type="submit" value="Delete User"> <br>
+        </form>
         <form action="/banUser" method="post">
             Ban User:
             <input type="text" name="username" placeholder="username">
-            <input type="submit" value="Ban User"> <br>
-        </form>
-        -->
-
-        <form action="/deleteUser" method="post">
-            Delete User:
-            <input type="text" name="username" placeholder="username">
-            <input type="submit" value="Delete User"> <br>
+            <select name="days">
+                <option value="1">1 day</option>
+                <option value="3">3 days</option>
+                <option value="7">1 week</option>
+                <option value="30">1 month</option>
+                <option value="92">3 months</option>
+                <option value="365">1 year</option>
+            </select>
+            <input type="text" maxlength="12" name="rule" placeholder="rule">
+            <input style="display:none" type="text"  name="post_id" value="-1">
+            <input style="display:none" type="text"  name="id" value="-1">
+            <input type="submit" maxlength="18" value="Ban User"> <br>
         </form>
     </div>
     <div>
@@ -64,6 +63,7 @@
                 <th>Accuser</th>
                 <th>View Post</th>
                 <th>Delete Post</th>
+                <th>Ban User</th>
                 <th>Delete User <br>(+ all related)</th>
             </tr>
         <%for(let i=0; i<reports.length; i++){%>
@@ -71,24 +71,43 @@
             <%if(reports[i].p_thread_id == -1){threadId = reports[i].p_post_id}
             else{threadId = reports[i].p_thread_id}%>
             <tr>
-                <td><%=reports[i].r_report_id%></td>
+                <td>
+                    <%=reports[i].r_report_id%>
+                    <form action="/deleteReport" method="POST">
+                        <input style="display:none" name="id" type="text" value="<%=reports[i].r_report_id%>">
+                        <input type="submit" value="X">
+                    </form>
+                </td>
                 <td><%=reports[i].r_post_id%></td>
                 <td><%=reports[i].r_rule%></td>
                 <td><%=reports[i].p_username%></td>
                 <td><%=reports[i].r_username%></td>
                 <td><button onclick="window.open('/thread/<%=threadId%>#p<%=reports[i].p_post_id%>', '' ,'width=800px, height=800px, left=200px, top=200px')"><%=threadId%>#<%=reports[i].p_post_id%></button></td>
-                <!--<td>
-                    <form action="/lockThread" method="post">
-                        <input style="display:none" value="<%=//reports[i].p_post_id%>" name="pid" type="number">
-                        <input type="submit" value="Lock Thread">
-                    </form>
-                </td>-->
                 <td>
                     <form action="/deletePost" method="post">
                         <input style="display:none" value="<%=reports[i].p_post_id%>" type="number" name="pid">
                         <input type="submit" value="Delete Post">
                     </form>
                 </td>
+                
+                <td>
+                    <form action="/banUser" method="post">
+                        <input style="display:none" name="id" type="text" value="<%=reports[i].r_report_id%>">
+                        <input style="display:none" name="post_id" type="text" value="<%=reports[i].p_post_id%>">
+                        <input style="display:none" type="text" name="username" value="<%=reports[i].p_username%>">
+                        <select name="days">
+                            <option value="1">1 day</option>
+                            <option value="3">3 days</option>
+                            <option value="7">1 week</option>
+                            <option value="30">1 month</option>
+                            <option value="92">3 months</option>
+                            <option value="365">1 year</option>
+                        </select>
+                        <input style="display:none" type="text" name="rule" value="<%=reports[i].r_rule%>">
+                        <input type="submit" maxlength="18" value="Ban User"> <br>
+                    </form>
+                </td>
+
                 <td>
                     <form action="/deleteUser" method="post">
                         <input style="display:none" value="<%=reports[i].p_username%>" type="text" name="username" placeholder="username">
@@ -100,6 +119,7 @@
         </table>
     </div>
     <a href='/users'><h2>View all Users</h2></a>
+    <a href='/admin/bans'><h2>View all Bans</h2></a>
 
 </body>
 

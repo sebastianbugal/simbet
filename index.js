@@ -599,18 +599,26 @@ app.post( "/add-post/", bodyParser.urlencoded( { extended:false } ), ( req, res 
 app.post( "/loginForm", ( req, res ) => {
 	var query = `SELECT * FROM users WHERE username = '${req.body.username}' AND password = '${req.body.password}'`;
 	db.query( query, ( err,result ) => {
-		if( result.rowCount > 0 ) {
-			req.session.loggedin = true;
-			req.session.username = req.body.username;
-			req.session.role = result.rows[0]["role"];
-			var results = { "username": req.session.username };
-			console.log( results );
-			res.redirect( "userView" );
-		} else {
-			return res.render( "pages/loginFailed" );
-		}
-		res.end();
-	} );
+    db.query(`SELECT * FROM bans WHERE b_username = '${req.body.username}' AND CURRENT_TIMESTAMP < b_end ORDER BY b_end DESC`, (error2, result2) => {
+      if(error2){res.send(error2); return;}
+      if(result2.rowCount > 0){
+        res.render("pages/banwall.ejs", {'row': result2.rows});
+        return;
+      } else{
+        if( result.rowCount > 0 ) {
+          req.session.loggedin = true;
+          req.session.username = req.body.username;
+          req.session.role = result.rows[0]["role"];
+          var results = { "username": req.session.username };
+          console.log( results );
+          res.redirect( "userView" );
+        } else {
+          return res.render( "pages/loginFailed" );
+        }
+        res.end();
+      }
+    });
+  } );
 } );
 
 app.post( "/back-forum", ( req,res )=>{
@@ -758,87 +766,106 @@ app.post("/reset-password", (req, res)=> {
 });
 
 // admin posts
-app.post( "/deletePost", ( req, res )=> {
-	var pid = req.body.pid;
-	db.query( `SELECT FROM "delete_post"(${pid})`, ( err, result ) => {
-		if( err ){
-			console.log( "Invalid input" );
-			var results = { "results": -2 };
-			res.redirect( "/admin" );
-			return;
-			//return res.render('pages/adminDashboard', results);
-		}
-		else if( result.rowCount > 0 ) {
-			console.log( `Post removed: ${pid}` );
-		}
-		else {
-			console.log( `Post not found: ${pid}` );
-		}
-		var results = { "results": result.rowCount };
-		//res.render('pages/adminDashboard', results);
-		res.redirect( "/admin" );
-	} );
-} );
+app.post("/deleteReport", (req, res)=>{
+  var id = req.body.id;
+  db.query( `DELETE FROM Reports WHERE r_report_id = ${id}`, ( error, result ) => {
+    if(error){res.send(error); return;}
+    res.redirect("/admin");
+  });
+});
 
-app.post( "/lockThread", ( req, res )=> {
-	var pid = req.body.pid;
-	db.query( `UPDATE Posts SET t_active='f' WHERE p_post_id=${pid}`, ( err, result ) => {
-		if( err ){
-			console.log( "Invalid input" );
-			var results = { "results": -2 };
-			return res.render( "pages/adminDashboard", results );
-		}
-		else if( result.rowCount > 0 ) {
-			console.log( `Thread Locked: ${pid}` );
-		}
-		else {
-			console.log( `Error locking thread: ${pid}` );
-		}
-		var results = { "results": result.rowCount };
-		//res.render('pages/adminDashboard', results);
-		res.redirect( "/admin" );
-	} );
+app.post( "/deletePost", ( req, res )=> {
+  var pid = req.body.pid;
+  db.query( `SELECT FROM "delete_post"(${pid})`, ( err, result ) => {
+    if( err ){
+      console.log( "Invalid input" );
+      var results = { "results": -2 };
+      res.redirect( "/admin" );
+      return;
+    }
+    res.redirect( "/admin" );
+  } );
 } );
 
 
 app.post( "/deleteUser", bodyParser.urlencoded( { extended:false } ), ( req, res )=> {
-	var username = req.body.username;
-	db.query( `SELECT FROM "delete_user"('${username}')`, ( err, result ) => {
-		if( err ){
-			console.log( "invalid input" );
-			var results = { "results": -2 };
-			//return res.render('pages/adminDashboard', results);
-		}
-		else if( result.rowCount > 0 ) {
-			console.log( `User deleted: ${username}` );
-		}
-		else {
-			console.log( `Error deleting user: ${username}` );
-		}
-		//var results = {'results': result.rowCount};
-		//res.render('pages/adminDashboard', results);
-		res.redirect( "/admin" );
-	} );
+  var username = req.body.username;
+  db.query( `SELECT FROM "delete_user"('${username}')`, ( err, result ) => {
+    if( err ){
+      console.log( "invalid input" );
+     }
+    res.redirect( "/admin" );
+  } );
 } );
+
+app.all("/admin/bans", (req, res)=>{
+  if( req.session.loggedin && (req.session.role == "m" || req.session.role == "a")) {
+    db.query( "SELECT * FROM bans ORDER by b_start", (error,result)=>{
+      if(error){res.send(error); return;}
+      res.render("pages/bans.ejs", {'bans': result.rows});
+    });
+  } else{
+    res.redirect( "/" ); 
+    return;
+  }
+});
+
+app.post("/banUser", bodyParser.urlencoded({ extended: false }), (req, res)=>{
+  var username = req.body.username;
+  var days = req.body.days;
+  var rule = req.body.rule;
+  var id = req.body.id;
+  var post_id = req.body.post_id;
+  if(!post_id)
+    post_id = -1;
+
+  db.query( `DELETE FROM Reports WHERE r_report_id = ${id}`, ( error, result ) => {
+    if(error){res.send(error); return;}
+  });
+
+  db.query(`INSERT INTO bans(b_username, b_end, b_rule, b_post_id) VALUES('${username}', CURRENT_DATE + INTERVAL '24 hour' * ${days}, '${rule}', ${post_id})`, (error, result)=>{
+      if(error){res.send(error); return;}
+      res.redirect("admin");
+  });
+});
+
+app.all("/banwall", (req, res)=>{
+  var username = req.session.username;
+  if(!username){res.redirect('/'); return;};
+  db.query(`SELECT * FROM bans WHERE b_username = '${username}' AND CURRENT_TIMESTAMP < b_end ORDER BY b_end DESC`, (error, result) => {
+    if(error){res.send(error); return;}
+    res.render("pages/banwall.ejs", {'row': result.rows});
+  });
+});
+
+app.post("/admin/deleteBan", bodyParser.urlencoded( { extended:false } ), (req, res)=>{
+  var id = req.body.id;
+  db.query(`DELETE FROM bans WHERE b_id = ${id}`, (error, result)=>{
+    if(error){res.send(error); return;}
+    res.redirect("/admin/bans");
+  });
+});
+
+app.all("/deleteBanExpired", (req, res)=>{
+  db.query(`DELETE FROM bans WHERE b_end < CURRENT_TIMESTAMP`, (error, result)=>{
+    if(error){res.send(error); return;}
+    res.redirect("/admin/bans");
+  });
+});
+
 
 app.post( "/updateAdmin", bodyParser.urlencoded( { extended:false } ), ( req, res )=> {
 	db.query( `UPDATE Users SET role='${req.body.role}' WHERE username='${req.body.username}'`, ( err, result ) => {
-		if( err ){
+    // mods cannot make others mod/admin
+    if(req.session.role != 'a' && (req.body.role == 'a' || req.body.role == 'm')){
+      res.send("Insufficient Role Privilidges for elevation.")
+      return;
+    }
+    if( err ){
 			res.send( "Invalid input" );
 			console.log( "Invalid input" );
-			var results = { "results": -2 };
 			return;
-			//return res.render('pages/adminDashboard', results);
 		}
-		/*
-    else if(result.rowCount > 0) {
-      console.log(`Role updated for: ${username}`);
-    }
-    else {
-      console.log(`Error updating roles: ${username}`);
-    }
-    //var results = {'results': result.rowCount};
-    //res.render('pages/adminDashboard', results);*/
 		res.redirect( "/admin" );
 	} );
 } );
@@ -958,7 +985,7 @@ io.on( "connection", socket=>{
 			socket.to( "chess_room" ).emit( "side",true );
 		}
 		else{
-
+[]
 
 			socket.to( "chess_room" ).emit( "side",true );
 		}
