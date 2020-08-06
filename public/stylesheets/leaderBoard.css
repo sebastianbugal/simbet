@@ -33,3 +33,9 @@
     width: 45%;
     color: blue;
 }
+
+.tweet_score {
+    font-size: 60px;
+    float:right;
+    width: 45%;
+}

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/loginPages.css" />    <meta charset="utf-8">
+    <title>Reset your password</title>
+  </head>
+  <body>
+    <div class="forgotPage">
+      <form class="container align-middle a" action="/reset-check" method="post">
+        <div class="forgotForm">
+          Enter the reset token that was emailed to you. <br>
+          <input class="textBoxes" type="text" placeholder="Enter your reset token" name="numericalToken" required> <br>
+          <input class="submitButtons" type="submit" name="submitToken" value="Submit">
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

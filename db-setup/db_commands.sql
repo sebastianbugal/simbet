@@ -11,11 +11,22 @@ CREATE TABLE Users(
 	password VARCHAR(30) NOT NULL,
 	role CHAR DEFAULT 'u',
 	date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	
+	accessible text[] DEFAULT '{main}'::text[],
+
 	rd numeric,
 	vol numeric,
 	following text[] DEFAULT '{}'::text[],
 	blocked text[] DEFAULT '{}'::text[],
-	accessible text[] DEFAULT '{main}'::text[]
+	resettoken bigint,
+
+	wins INTEGER default 0,
+	losses INTEGER default 0,
+	ties INTEGER default 0,
+
+	-- twitter user auth tokens
+	oauth_token VARCHAR(80),
+	oauth_token_secret VARCHAR(80)
 );
 
 --Insert User

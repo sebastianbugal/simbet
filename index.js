@@ -2,6 +2,8 @@ const express = require( "express" ),
 	http = require( "http" );
 const path = require( "path" );
 const ses = require( "express-session" );
+
+var cors= require('cors')
 // const http=require('http').Server(express);
 const { Chess } = require( "./public/js/chess.js" );
 const PORT = process.env.PORT || 1500;
@@ -17,11 +19,25 @@ var settings = {
 var ranking = new glicko.Glicko2( settings );
 const db = new Pool( {
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-	connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
+  connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
 } );
 const fetch = require( "node-fetch" );
 
 var bodyParser = require( "body-parser" );
+
+var nodemailer = require('nodemailer');
+var smtpTransport = require('nodemailer-smtp-transport');
+var transporter = nodemailer.createTransport(smtpTransport({
+  service: 'gmail',
+	host: 'smtp.gmail.com',
+  auth: {
+    user: 'splatwebservices@gmail.com',
+    pass: '276RedHorse!!!Donkey'
+  }
+}));
+var crypto = require('crypto');
+var format = require('biguint-format');
+var validator = require("email-validator");
 
 const app = express();
 var server = http.createServer( app );
@@ -62,15 +78,15 @@ var t_client = new Twitter( {
 
 app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more than 450 refreshes every 15 mins
 	if( req.session.loggedin ){
-		t_client.get( "search/tweets", { q: "#SplatForum", count:"5", include_entities:"true" }, function( error, tweets, response ) {
+		t_client.get( "https://api.twitter.com/1.1/search/tweets.json", { q: "#SplatForum", count:"10", include_entities:"true" }, function( error, tweets, response ) {
 			if( error ) throw error;
 			var tweets = { "statuses":tweets.statuses };
 			var query = "SELECT * FROM users ORDER BY chess_elo DESC";
 			db.query( query, ( err, result ) => {
 				if( err ){
 					res.send( error );
-				}
-				var data = { "rows":result.rows, tweets };
+        }
+        var data = { "rows":result.rows, tweets };
 				res.render( "pages/leaderBoards", data );
 			} );
 		} );
@@ -80,9 +96,72 @@ app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more t
 } );
 
 
+app.get("/tweetAuth", (req, res) => {
+  // get request token
+  t_client.post("https://api.twitter.com/oauth/request_token", {oauth_callback:"https://splatt.herokuapp.com/tweetAuthed", oauth_consumer_key:process.env.TWITTER_API_KEY }, function(error, response) {
+    if (error) {
+      // console.log("error");
+    }
+    var token = response.split('&')[0];
+    res.redirect(`https://api.twitter.com/oauth/authorize?${token}`);
+  } );
+
+});
+
+app.get("/tweetAuthed", (req, res) => {
+  var tokens = req.originalUrl.split('&');
+  tokens[0] = tokens[0].split('?')[1];
+  if (tokens[0].substring(0,6) == 'denied') {
+    res.redirect("/leaderBoards");
+    return;
+  } else {
+    tokens[0] = tokens[0].split('=')[1];
+    tokens[1] = tokens[1].split('=')[1];
+  }
+
+  t_client.post("https://api.twitter.com/oauth/access_token", {oauth_consumer_key:process.env.TWITTER_API_KEY, oauth_token:tokens[0], oauth_verifier:tokens[1]}, function(error, response) {
+    console.log(response);
+    response = response.split('&');
+    var access_tokens = {oauth_token: response[0].split('=')[1],
+                         oauth_token_secret: response[1].split('=')[1]};
+    db.query(`UPDATE Users SET oauth_token='${access_tokens.oauth_token}', oauth_token_secret='${access_tokens.oauth_token_secret}' WHERE username='${req.session.username}'`, ( err, result ) => {
+      if( err ){
+        console.log(err);
+        res.send(err);
+      }
+      var t_client_u = new Twitter( {
+        consumer_key: process.env.TWITTER_API_KEY,
+        consumer_secret: process.env.TWITTER_API_SECRET_KEY,
+        access_token_key: access_tokens.oauth_token,
+        access_token_secret: access_tokens.oauth_token_secret
+      });
+      var query = `SELECT * FROM users WHERE username='${req.session.username}' ORDER BY chess_elo DESC`;
+			db.query( query, ( err, result ) => {
+				if( err ){
+					res.send( error );
+        }
+        var data = result.rows[0];
+        var t_status = `Username:${data.username}, Wins:${data.wins}, Ties:${data.ties}, Losses:${data.losses}, Elo:${data.chess_elo} \nJoin the fun at https://splatt.herokuapp.com/  #SplatForum`;
+        t_client_u.post('statuses/update', {status: t_status}, function(error, tweet, response) {
+          if (error) {
+            console.log(error);
+          }
+          console.log("Tweet Sent!");
+          res.redirect('/leaderBoards');
+      });
+      });
+    });
+  });
+});
+
+
 app.get( "/", ( req, res ) => res.render( "pages/login" ) );
 
 app.get( "/login", ( req, res ) => res.render( "pages/login" ) );
+
+app.get( "/forgot", ( req, res ) => res.render( "pages/forgot" ) );
+
+app.get( "/emailTaken", ( req, res ) => res.render( "pages/emailTaken" ) );
 
 app.all( "/admin", ( req, res ) => {
 	// check for admin rights
@@ -552,25 +631,137 @@ app.post( "/registerForm", ( req, res ) => {
 			return res.render( "pages/usernameTaken" );
 		} else {
 			if( req.body.email ){
-				var email = req.body.email;
+				db.query( `SELECT email from users WHERE email = '${req.body.email}'`, ( err, result ) => {
+					if ( result.rowCount > 0 ) {
+						res.redirect("/emailTaken");
+					} else {
+						var email = req.body.email;
+						var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
+						db.query( query, ( err,result ) => {
+							if( result ) {
+                console.log( "Successful registration." );
+								res.redirect( "/login" );
+							} else if ( err ){
+								res.render( "pages/usernameTaken" );
+							} else {
+								res.send( "This register has failed idk why." );
+							}
+							return;
+						} );
+					}
+				})
 			} else {
 				var email = "";
+				var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
+				db.query( query, ( err,result ) => {
+					if( result ) {
+            console.log( "Successful registration." );
+						res.redirect( "/login" );
+					} else if ( err ){
+						res.render( "pages/usernameTaken" );
+					} else {
+						res.send( "This register has failed idk why." );
+					}
+					return;
+				} );
 			}
-			var query = `INSERT into users (username, email, password) VALUES('${req.body.username}', '${email}', '${req.body.password}')`;
-			db.query( query, ( err,result ) => {
-				if( result ) {
-					console.log( "Successful registration." );
-					res.redirect( "/login" );
-				} else if ( err ){
-					res.render( "pages/userNameTaken" );
-				} else {
-					res.send( "This register has failed idk why." );
-				}
-				return;
-			} );
 		}
 	} );
 } );
+
+app.post("/reset-email", (req, res) => {
+	var userEmail = req.body.email;
+	if(validator.validate(userEmail)){
+		const query = `SELECT username from users WHERE email = '${userEmail}'`;
+		db.query(query, (err, result) => {
+			if (result.rowCount > 0) {
+				var randy = crypto.randomBytes(6);
+				var stringnum = format(randy, 'dec');
+				var num = BigInt(stringnum);
+				const query2 = `UPDATE users SET resetToken = '${num}' WHERE email = '${userEmail}'`;
+				db.query(query2, (err,result) => {
+					if(err) {
+						console.log("Token not inserted");
+						res.redirect("/login");
+						return;
+					} else {
+						var emailToken = {
+							from: 'splatwebservices@gmail.com',
+							to: `${userEmail}`,
+							subject: `Password reset token for Splat`,
+							text: `Hello,
+You are receiving this email because you or somebody else has requested a password reset on splat. If this was not you, check your security on all your accounts.
+If this was you then your password reset token is: ${num}. Enter this on the page that you have been redirected to on Splat.
+Thank you for using Splat.
+From: The Splat Team.`
+						}
+						transporter.sendMail(emailToken, function(err, info){
+							if (err) {
+								console.log(err);
+								res.redirect("/login");
+								return;
+							} else {
+								res.render("pages/resetCheck");
+								return;
+							}
+						})
+					}
+				})
+			} else {
+				res.render("pages/noAccount");
+			}
+		})
+	} else {
+		res.render("pages/emailInvalid.ejs")
+	}
+});
+
+app.post("/reset-check", (req, res)=> {
+	var token = req.body.numericalToken;
+	const query = `SELECT username FROM users WHERE resetToken = '${token}'`;
+	db.query(query, (err, result) => {
+		if(err){
+			console.log(err);
+		} else if (result.rowCount == 1){
+			const query2 = `UPDATE users SET resetToken = NULL WHERE resetToken = ${token}`;
+			db.query(query2, (err2,result2) => {
+				if(err2){
+					console.log(err2);
+				} else {
+					user = { 'rows': result.rows}
+					res.render("pages/resetPassword", user);
+				}
+			})
+		} else {
+
+		}
+	})
+});
+
+app.post("/reset-password", (req, res)=> {
+	var pass1 = req.body.password1;
+	var pass2 = req.body.password2;
+	var usernameChange = req.body.user;
+	if(pass1 == pass2){
+		const query = `UPDATE users SET password = '${pass1}' WHERE username = '${usernameChange}'`;
+		db.query(query, (err, result) => {
+			if(err){
+				console.log(err);
+			} else {
+				res.render("pages/resetPassSuccess");
+			}
+		});
+	} else {
+		db.query(`SELECT username FROM users WHERE username = '${usernameChange}'`, (err,result)=> {
+			if(err){
+				console.log(err);
+			} else {
+				user = { 'rows': result.rows}
+				res.render("pages/resetPassword", user);
+			}
+		})
+	}
+});
 
 // admin posts
 app.post("/deleteReport", (req, res)=>{
@@ -683,6 +874,7 @@ app.all( "/users", ( req,res )=>{
 		res.render( "pages/users.ejs", { "users": result.rows } );
 	} );
 } );
+
 
 function NumClients( room ) {
 	var clients = io.adapter.rooms[room];
@@ -875,22 +1067,27 @@ io.on( "connection", socket=>{
 				if( moveColor=="white" ){
 					console.log( "white" );
 					match.push( [ white_player,black_player,1 ] );
-	
-	
+
+					console.log( match );
+					ranking.updateRatings( match );
+
+					var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, wins=wins+1 WHERE username='${cur.white_user}'`;
+					db.query( query_w, ( err, result ) => {console.log( err,result );} );
+					var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, losses=losses+1 WHERE username='${cur.black_user}'`;
+					db.query( query_b, ( err, result ) => {console.log( err,result );} );
 				}
 				else{
-				
 					console.log( "black" );
 					match.push( [ white_player,black_player,0 ] );
 
+					console.log( match );
+					ranking.updateRatings( match );
+					
+					var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, losses=losses+1 WHERE username='${cur.white_user}'`;
+					db.query( query_w, ( err, result ) => {console.log( err,result );} );
+					var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, wins=wins+1 WHERE username='${cur.black_user}'`;
+					db.query( query_b, ( err, result ) => {console.log( err,result );} );
 				}
-				console.log( match );
-				ranking.updateRatings( match );
-	
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
-				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
-				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
 
 			io.in(cur.room).emit('close_room',(moveColor+' Wins'))
@@ -942,9 +1139,9 @@ io.on( "connection", socket=>{
 				match.push( [ white_player,black_player,0.5 ] );
 				console.log( match );
 				ranking.updateRatings( match );
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
+				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, ties=ties+1 WHERE username='${cur.white_user}'`;
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
+				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()},ties=ties+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
 			io.in(cur.room).emit('close_room','Draw')
@@ -1032,9 +1229,9 @@ io.on( "connection", socket=>{
 				} );
 				match.push( [ white_player,black_player,1 ] );
 				ranking.updateRatings( match );
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
+				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, wins=wins+1 WHERE username='${cur.white_user}'`;
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
+				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, losses=losses+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 			} );
 		}
@@ -1065,9 +1262,9 @@ io.on( "connection", socket=>{
 				} );
 				match.push( [ white_player,black_player,0 ] );
 				ranking.updateRatings( match );
-				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()} WHERE username='${cur.white_user}'`;
+				var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, losses=losses+1 WHERE username='${cur.white_user}'`;
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
-				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()} WHERE username='${cur.black_user}'`;
+				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, wins=wins+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
 				
 			} );
@@ -1090,9 +1287,9 @@ io.on( "connection", socket=>{
 			  }
 		  })
 		  console.log(rooms, r)
-	}
-	} );
-} );
+		}
+	});
+});
 
 app.get( "/rooms", ( req,res )=>{
 	if(req.session.loggedin){
@@ -1109,7 +1306,7 @@ app.post( "/join_room" , ( req,res )=>{
 	var a =req.body.room;
 	console.log( a );
 	res.redirect( "/chess"+req.body.room );
-  
+
 } );
 app.get( "/games",( req,res )=>{
 	if( req.session.loggedin ){

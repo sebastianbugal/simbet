@@ -1,12 +1,67 @@
 .loginRegister {
   position: fixed;
   width: 250px;
-  height: 400px;
+  height: 420px;
   top: 45%;
   left: 50%;
   margin: -150px 0 0 -150px;
   border-radius: 12px;
   border: 2px solid #228B22;
+}
+
+.forgotPage {
+  text-align: center;
+  position: fixed;
+  width: 400px;
+  height: 180px;
+  top: 50%;
+  left: 45%;
+  margin: -150px 0 0 -150px;
+  border-radius: 12px;
+  border: 2px solid #228B22;
+}
+
+.resetPage {
+  text-align: center;
+  position: fixed;
+  width: 400px;
+  height: 250px;
+  top: 50%;
+  left: 45%;
+  margin: -150px 0 0 -150px;
+  border-radius: 12px;
+  border: 2px solid #228B22;
+}
+
+.successPage {
+  text-align: center;
+  position: fixed;
+  width: 400px;
+  height: 120px;
+  top: 50%;
+  left: 45%;
+  margin: -150px 0 0 -150px;
+  border-radius: 12px;
+  border: 2px solid #228B22;
+}
+
+.noAccPage {
+  text-align: center;
+  position: fixed;
+  width: 400px;
+  height: 100px;
+  top: 50%;
+  left: 45%;
+  margin: -150px 0 0 -150px;
+  border-radius: 12px;
+  border: 2px solid #228B22;
+}
+
+.forgotForm {
+  font-size: 16px;
+  position: relative;
+  text-align: center;
+  padding: 10px;
 }
 
 .loginNotice {
@@ -87,6 +142,7 @@ li a:hover {
 }
 
 .a{
+    font-size: 12px;
     display: inline-block;
     margin-left: auto;
     margin-right: auto;
