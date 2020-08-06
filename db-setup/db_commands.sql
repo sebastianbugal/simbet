@@ -19,6 +19,14 @@ alter table users add following text[] DEFAULT '{}'::text[];
 alter table users add blocked text[] DEFAULT '{}'::text[];
 alter table users add resetToken bigint;
 
+alter table users add wins INTEGER default 0;
+alter table users add losses INTEGER default 0;
+alter table users add ties INTEGER default 0;
+
+-- twitter user auth tokens
+alter table users add oauth_token VARCHAR(80);
+alter table users add oauth_token_secret VARCHAR(80);
+
 --Insert User
 INSERT INTO Users(
 	username, password
