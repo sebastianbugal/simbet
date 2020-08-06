@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>All Users</title>
+<link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
+<link rel="stylesheet" type="text/css" href="stylesheets/admin_dash.css">
+<% include ../partials/header.ejs %>
+</head>
+
+<body>
+    <% include ../partials/adminNav.ejs %>
+    <a href="/admin">Return to Dashboard</a>
+    <br>
+    <br>
+    <form id="banExpire" action="/deleteBanExpired" method="POST">
+        <input type="submit" value="Remove All Expired Bans">
+    </form>
+
+    <div>
+        <h2>Bans</h2>
+        <table style="" border="1px black solid">
+            <tr>
+                <td>id</td>
+                <td>username</td>
+                <td>start</td>
+                <td>end</td>
+                <td>rule</td>
+                <td>post_id</td>
+                <td>Remove Ban</td>
+            </tr>
+        <% for(let i=0; i<bans.length; i++){ %>
+            <tr>
+                <td><%=bans[i].b_id%></td>
+                <td><%=bans[i].b_username%></td>
+                <td><%=bans[i].b_start%> </td>
+                <td><%=bans[i].b_end%></td>
+                <td><%=bans[i].b_rule%></td>
+                <td><%=bans[i].b_post_id%></td>
+                <td>
+                    <form action="deleteBan" method="POST">
+                        <input name="id" style="display:none;" type="text" value="<%=bans[i].b_id%>">
+                        <input type="submit" value="Alleviate Ban <%=bans[i].b_id%>">
+                    </form>
+                </td>
+            </tr>
+        <%}%>
+        </table>
+    </div>
+
+</body>
+
+
+
+</html>
