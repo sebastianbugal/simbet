@@ -78,7 +78,7 @@ var t_client = new Twitter( {
 
 app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more than 450 refreshes every 15 mins
 	if( req.session.loggedin ){
-		t_client.get( "https://api.twitter.com/1.1/search/tweets.json", { q: "#SplatForum", count:"5", include_entities:"true" }, function( error, tweets, response ) {
+		t_client.get( "https://api.twitter.com/1.1/search/tweets.json", { q: "#SplatForum", count:"10", include_entities:"true" }, function( error, tweets, response ) {
 			if( error ) throw error;
 			var tweets = { "statuses":tweets.statuses };
 			var query = "SELECT * FROM users ORDER BY chess_elo DESC";
@@ -141,7 +141,7 @@ app.get("/tweetAuthed", (req, res) => {
 					res.send( error );
         }
         var data = result.rows[0];
-        var t_status = `Username:${data.username}, Wins:${data.wins}, Ties:${data.ties}, Losses:${data.losses}, Elo:${data.chess_elo} \nJoin the fun at https://splatt.herokuapp.com #SplatForum`;
+        var t_status = `Username:${data.username}, Wins:${data.wins}, Ties:${data.ties}, Losses:${data.losses}, Elo:${data.chess_elo} \nJoin the fun at https://splatt.herokuapp.com/  #SplatForum`;
         t_client_u.post('statuses/update', {status: t_status}, function(error, tweet, response) {
           if (error) {
             console.log(error);
