@@ -2,7 +2,7 @@ var chai = require('chai');
 var chaihttp = require('chai-http');
 var server = require('../index');
 var should = chai.should();
-
+var request = require('supertest')
 chai.use(chaihttp);
 
 describe("Testing login and register functions with different sets of credentials", function(){
@@ -64,14 +64,26 @@ describe("Testing login and register functions with different sets of credential
         done();
       })
   })
-  it("testing rooms", function(done){
-    chai.request(server).post("/loginForm").send({'username':'admin', 'password':'notthecorrectpassword'})
+
+})
+describe('Testing chess', function(){
+  let agent = request.agent(server);
+
+  it("testing room creation", function(done){
+   agent.post("/loginForm").send({'username':'1', 'password':'1'})
       .end(function(err,res){
-        chai.request(server).get('/create_room') 
-            
-        res.should.have.status(200);
-        // res.text.should.include('admin')
+        agent.get('/create_room')    
+        res.should.have.status(302);
         done();
       })
+  })
+  it('testing joining room', function(done){
+    agent.post("/loginForm").send({'username':'2', 'password':'2'})
+    .end(function(err,res){
+      agent.get('/join_roonm')
+      res.should.have.status(302);
+      
+      done();
+    })
   })
 })

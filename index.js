@@ -1318,12 +1318,13 @@ app.post( "/create_room" , ( req,res )=>{
 	
 
 } );
+
 app.post( "/join_room" , ( req,res )=>{
 	var a =req.body.room;
 	console.log( a );
 	res.redirect( "/chess"+req.body.room );
-
 } );
+
 app.get( "/games",( req,res )=>{
 	if( req.session.loggedin ){
 		res.render( "pages/games" );}
@@ -1371,4 +1372,4 @@ app.get( "/logout",function( req,res ){
 } );
 server.listen( PORT, () => console.log( `Listening on ${ PORT }` ) );
 // app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
-module.exports = app;
+module.exports = server;
