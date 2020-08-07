@@ -146,3 +146,69 @@ describe("Various tests on the creating and accessing of forums", function(){
       })
   })
 })
+
+describe('ban system', (done)=>{
+	let agent = request.agent(server);
+   // load bans
+  	it('load ban table for /admin/bans', (done)=>{
+   	agent.post('/loginForm').send({'username':'test', 'password':'test'})
+   	.end((err, res)=>{
+   		agent.post("/admin/bans/").send({})
+   			.end((err2, res2)=>{
+   				res2.should.have.status(200);
+   				done();
+   			})
+   	})
+   })
+
+	// adding a ban
+	it('load ban table for /banUser', (done)=>{
+   	agent.post('/loginForm').send({'username':'test', 'password':'test'})
+   	.end((err, res)=>{
+   		agent.post("/banUser").send({
+   			'username':'internal_test',
+   			'days': -1,
+   			'rules':'test',
+   			'id': -1,
+   			'post_id': -1
+   		})
+   			.end((err2, res2)=>{
+   				res2.should.have.status(302);
+   				done();
+   			})
+   	})
+   })
+
+	// removing a ban
+	it('removing single bans for /admin/deleteBan', (done)=>{
+   	agent.post('/loginForm').send({'username':'test', 'password':'test'})
+   	.end((err, res)=>{
+   		agent.post("/admin/deleteBan").send({
+   			'id':-1
+   		})
+   			.end((err2, res2)=>{
+   				res2.should.have.status(302);
+   				done();
+   			})
+   	})
+   })
+
+   // removing all expired bans
+   it('remove all bans /deleteBanExpired', (done)=>{
+   	agent.post('/loginForm').send({'username':'test', 'password':'test'})
+   	.end((err, res)=>{
+   		agent.post("/deleteBanExpired").send({
+   		})
+   			.end((err2, res2)=>{
+   				res2.should.have.status(302);
+   				done();
+   			})
+   	})
+   })
+	
+});
+
+
+
+
+

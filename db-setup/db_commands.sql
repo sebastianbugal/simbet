@@ -108,15 +108,16 @@ CREATE OR REPLACE FUNCTION post_thread(
 	in_t_subject VARCHAR(120),
 	in_t_forum VARCHAR(18),
 	in_p_username VARCHAR(18),
-	in_p_text VARCHAR(1500)
+	in_p_text VARCHAR(1500),
+	in_p_country_code CHAR(2)
 )
 RETURNS INT AS $$
 DECLARE new_post_id INT;
 BEGIN
 	INSERT INTO Posts(
-		t_subject, t_forum, p_username, p_text)
+		t_subject, t_forum, p_username, p_text, p_country_code)
 	VALUES(
-		in_t_subject, in_t_forum, in_p_username, in_p_text);
+		in_t_subject, in_t_forum, in_p_username, in_p_text, in_p_country_code);
 
 	SELECT currval(pg_get_serial_sequence('Posts', 'p_post_id')) INTO new_post_id;
 
@@ -124,8 +125,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- post a thread call
-SELECT "post_thread"('${tSubject}', '${tForum}', '${pUsername}', '${pText}') AS id;
 
 -- post in a thread function
 CREATE OR REPLACE FUNCTION post_reply(
