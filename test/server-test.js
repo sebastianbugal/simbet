@@ -58,6 +58,27 @@ describe("Testing login and register functions with different sets of credential
         done();
       })
   })
+  it("should access Userview when user logins", function(done){
+    chai.request(server).post("/loginForm").send({'username':'a', 'password':'1'})
+    .end(function(err,res){
+    chai.request(server).get("/userView")
+      .end(function(err,res){
+        res.should.have.status(200);
+        done();
+      })
+      })
+  });
+
+  it("should access Gamesmenus when user login", function(done){
+    chai.request(server).post("/loginForm").send({'username':'admin', 'password':'notthecorrectpassword'})
+    .end(function(err,res){
+    chai.request(server).get("/games")
+      .end(function(err,res){
+        res.should.have.status(200);
+        done();
+      })
+      })
+  });
 
   it("should not allow access to site because no session username", function(done){
     chai.request(server).get("/userView")
