@@ -2,14 +2,27 @@ table{
    margin-left: 20px;
 }
 
+body {
+  margin: auto;
+}
+
 .actions{
-    border: 2px;
+  text-align: center;
+  border: 2px;
 }
 
 td, th, table{
+  margin: auto;
+  text-align: center;
 	border: 1px solid black;
-	border-collapse: collpase;	
+	border-collapse: collapse;
 }
+
+a {
+  text-align: center;
+}
+
 td, th{
+  text-align: center;
 	padding: 2px;
 }

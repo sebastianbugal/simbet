@@ -3,7 +3,7 @@
 <head>
 <title>Admin Dashboard</title>
 <link rel="stylesheet" type="text/css" href="/stylesheets/invariant.css">
-<link rel="stylesheet" type="text/css" href="stylesheets/admin_dash.css">
+<link rel="stylesheet" type="text/css" href="/stylesheets/admin_dash.css">
 <% include ../partials/header.ejs %>
 </head>
 
@@ -43,16 +43,14 @@
             <input style="display:none" type="text"  name="id" value="-1">
             <input type="submit" maxlength="18" value="Ban User"> <br>
         </form>
-    </div>
-    <div>
+
         <h2>Change User Roles</h2>
         <form action="/updateAdmin" method="post">
             <input type="text" name="username" placeholder="username">
             <input type="text" name="role" placeholder="role">
             <input type="submit">
         </form>
-    </div>
-    <div>
+    
         <h2>Unresolved Reports</h2>
         <table border = "1px solid black">
             <tr>
@@ -89,7 +87,7 @@
                         <input type="submit" value="Delete Post">
                     </form>
                 </td>
-                
+
                 <td>
                     <form action="/banUser" method="post">
                         <input style="display:none" name="id" type="text" value="<%=reports[i].r_report_id%>">
