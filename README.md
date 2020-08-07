@@ -4,4 +4,4 @@ Splat is an online message board/game platform that allows players to join priva
 Libraries used:
 Chessboard.js,
 chess.js,
-glicko2,
+glicko2
