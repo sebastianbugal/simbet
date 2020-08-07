@@ -14,7 +14,6 @@
     "@chrisoakman/chessboardjs": "^1.0.0",
     "biguint-format": "^1.0.2",
     "body-parser": "^1.19.0",
-    "chai": "^4.2.0",
     "chai-http": "^4.3.0",
     "chess.js": "^0.11.0",
     "cookie-parser": "^1.4.5",
@@ -35,9 +34,11 @@
     "pg": "^8.2.1",
     "socket.io": "^2.3.0",
     "socket.io-session-middleware": "^0.1.0",
+    "supertest": "^4.0.2",
     "twitter": "^1.7.1"
   },
   "devDependencies": {
+    "chai": "^3.2.0",
     "eslint": "^7.5.0",
     "got": "^11.3.0",
     "tape": "^4.7.0"
