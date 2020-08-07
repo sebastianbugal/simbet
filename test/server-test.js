@@ -6,84 +6,6 @@ var request = require('supertest');
 
 chai.use(chaiHttp);
 
-// Leaderboard Tests
-describe('Leaderboard Tests', function() {
-    let agent = request.agent(server);
-
-    it('should load leaderboard and placeholders for twitter feed', function(done) {
-        agent.post("/loginForm").send({'username':'admin', 'password':'root'})
-            .end(function(err, res1) {
-                agent.get('/leaderBoards')
-                .end(function(err, res2) {
-                    res2.should.have.status(200);
-                    res2.should.be.html;
-                    res2.text.should.include('<div class="tweet_hash">');
-                    res2.text.should.include('<div class="embedded_feed">');
-                done();
-                });
-            });
-
-    });
-
-    it('should organize players by elo with highest elo at the top', function(done) {
-        agent.post("/loginForm").send({'username':'admin', 'password':'root'})
-            .end(function(err, res1) {
-                agent.get('/leaderBoards')
-                .end(function(err, res2) {
-                    res2.should.have.status(200);
-                    res2.should.be.html;
-                    chai.assert(res2.text.split('</script>')[5].split('<tr>')[2].split('<td>')[6].split('</td>')[0]
-                            >= res2.text.split('</script>')[5].split('<tr>')[3].split('<td>')[6].split('</td>')[0]); // don't judge
-                    res2.text.should.include('<div class="tweet_hash">');
-                    res2.text.should.include('<div class="embedded_feed">');
-                done();
-                });
-            });
-    });
-
-    it('should send a GET request to Twitter API', function(done) {
-        agent.post("/loginForm").send({'username':'admin', 'password':'root'})
-        .end(function(err, res1) {
-            agent.get('/leaderBoards')
-            .end(function(err, res2) {
-                res2.should.have.status(200);
-                res2.should.be.html;
-                res2.text.should.include('<blockquote class="twitter-tweet">');
-            done();
-            });
-        });
-    });
-});
-
-// Twitter API call Tests
-describe('Twitter API Call Tests', function() {
-    let agent = request.agent(server);
-
-    it('should receive a redirect to authorization site', function(done) {
-        agent.post("/loginForm").send({'username':'admin', 'password':'root'})
-        .end(function(err, res1) {
-            agent.get('/tweetAuth')
-            .end(function(err, res2) {
-                res2.should.have.status(302);
-                res2.header.location.should.include("?oauth_token");
-            done();
-            });
-        });
-    });
-
-    it('should redirect back to leaderboards since no user tokens are available in testing', function(done) {
-        agent.post("/loginForm").send({'username':'admin', 'password':'root'})
-        .end(function(err, res1) {
-            agent.get('/tweetAuthed?denied')
-            .end(function(err, res2) {
-                res2.should.have.status(302);
-            done();
-            });
-        });
-    });
-
-});
-
 
 describe("Testing login and register functions with different sets of credentials", function(){
   let agent = request.agent(server);
@@ -152,19 +74,19 @@ describe('Testing chess', function(){
   let agent = request.agent(server);
 
   it("testing room creation", function(done){
-   agent.post("/loginForm").send({'username':'1', 'password':'1'})
+   agent.post("/loginForm").send({'username':'test', 'password':'test'})
       .end(function(err,res){
-        agent.get('/create_room')    
+        agent.get('/create_room')
         res.should.have.status(302);
         done();
       })
   })
   it('testing joining room', function(done){
-    agent.post("/loginForm").send({'username':'2', 'password':'2'})
+    agent.post("/loginForm").send({'username':'test', 'password':'test'})
     .end(function(err,res){
       agent.get('/join_roonm')
       res.should.have.status(302);
-      
+
       done();
     })
   })
@@ -236,3 +158,141 @@ describe("Various tests on the creating and accessing of forums", function(){
       })
   })
 })
+
+describe("Testing following and blocking", function(){
+  let agent = request.agent(server);
+  it("Should follow the user admin", function(done){
+    agent.post("/loginForm").send({'username':'test', 'password':'test', 'searchVal': 'admin'})
+      .end(function(err,res){
+        agent.post("/add_user").send({'username':'test', 'password':'test', 'searchVal': 'admin'})
+          .end(function(err2,res2){
+            agent.get("/user_add").send({'username':'test', 'password':'test', 'searchVal': 'admin'})
+              .end(function(err3,res3){
+                res3.should.be.html;
+                res3.text.should.include('admin');
+                done();
+              })
+          })
+      })
+  })
+  it("Should unfollow the user admin", function(done){
+    agent.post("/loginForm").send({'username':'test', 'password':'test', 'unfollow': 'admin'})
+      .end(function(err,res){
+        agent.post("/unfollow").send({'username':'test', 'password':'test', 'unfollow': 'admin'})
+          .end(function(err2,res2){
+            agent.get("/user_add").send({'username':'test', 'password':'test', 'unfollow': 'admin'})
+              .end(function(err3,res3){
+                res3.should.be.html;
+                res3.text.should.not.include('admin');
+                done();
+              })
+          })
+      })
+  })
+  it("Should block the user admin", function(done){
+    agent.post("/loginForm").send({'username':'test', 'password':'test', 'searchVal': 'admin'})
+      .end(function(err,res){
+        agent.post("/block_user").send({'username':'test', 'password':'test', 'searchVal': 'admin'})
+          .end(function(err2,res2){
+            agent.get("/user_add").send({'username':'test', 'password':'test', 'searchVal': 'admin'})
+              .end(function(err3,res3){
+                res3.should.be.html;
+                res3.text.should.include('admin');
+                done();
+              })
+          })
+      })
+  })
+  it("Should unblock the user admin", function(done){
+    agent.post("/loginForm").send({'username':'test', 'password':'test', 'unblock': 'admin'})
+      .end(function(err,res){
+        agent.post("/unblock").send({'username':'test', 'password':'test', 'unblock': 'admin'})
+          .end(function(err2,res2){
+            agent.get("/user_add").send({'username':'test', 'password':'test', 'unblock': 'admin'})
+              .end(function(err3,res3){
+                res3.should.be.html;
+                res3.text.should.not.include('admin');
+                done();
+              })
+          })
+      })
+  })
+})
+
+// Leaderboard Tests
+describe('Leaderboard Tests', function() {
+    let agent = request.agent(server);
+
+    it('should load leaderboard and placeholders for twitter feed', function(done) {
+        agent.post("/loginForm").send({'username':'admin', 'password':'root'})
+            .end(function(err, res1) {
+                agent.get('/leaderBoards')
+                .end(function(err, res2) {
+                    res2.should.have.status(200);
+                    res2.should.be.html;
+                    res2.text.should.include('<div class="tweet_hash">');
+                    res2.text.should.include('<div class="embedded_feed">');
+                    done();
+                });
+            });
+
+    });
+
+    it('should organize players by elo with highest elo at the top', function(done) {
+        agent.post("/loginForm").send({'username':'admin', 'password':'root'})
+            .end(function(err, res1) {
+                agent.get('/leaderBoards')
+                .end(function(err, res2) {
+                    res2.should.have.status(200);
+                    res2.should.be.html;
+                    chai.assert(res2.text.split('</script>')[5].split('<tr>')[2].split('<td>')[6].split('</td>')[0]
+                            >= res2.text.split('</script>')[5].split('<tr>')[3].split('<td>')[6].split('</td>')[0]); // don't judge
+                    res2.text.should.include('<div class="tweet_hash">');
+                    res2.text.should.include('<div class="embedded_feed">');
+                    done();
+                });
+            });
+    });
+
+    it('should send a GET request to Twitter API', function(done) {
+        agent.post("/loginForm").send({'username':'admin', 'password':'root'})
+        .end(function(err, res1) {
+            agent.get('/leaderBoards')
+            .end(function(err, res2) {
+                res2.should.have.status(200);
+                res2.should.be.html;
+                res2.text.should.include('<blockquote class="twitter-tweet">');
+                done();
+            });
+        });
+    });
+});
+
+// Twitter API call Tests
+describe('Twitter API Call Tests', function() {
+    let agent = request.agent(server);
+
+    it('should receive a redirect to authorization site', function(done) {
+        agent.post("/loginForm").send({'username':'admin', 'password':'root'})
+        .end(function(err, res1) {
+            agent.get('/tweetAuth')
+            .end(function(err, res2) {
+                res2.should.have.status(302);
+                res2.header.location.should.include("?oauth_token");
+                done();
+            });
+        });
+    });
+
+    it('should redirect back to leaderboards since no user tokens are available in testing', function(done) {
+        agent.post("/loginForm").send({'username':'admin', 'password':'root'})
+        .end(function(err, res1) {
+            agent.get('/tweetAuthed?denied')
+            .end(function(err, res2) {
+                res2.should.have.status(302);
+                done();
+            });
+        });
+    });
+
+});
