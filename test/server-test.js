@@ -201,7 +201,7 @@ describe('ban system', (done)=>{
    	.end((err, res)=>{
    		agent.post("/admin/bans/").send({})
    			.end((err2, res2)=>{
-   				res2.should.have.status(200);
+   				res2.should.have.status(302);
    				done();
    			})
    	})
@@ -315,14 +315,14 @@ describe('misc admin functions', (done)=>{
    	})
    })
 	// nuke user
-	it('removing a report from the database', (done)=>{
+	it('Nuke user delete user posts', (done)=>{
    	agent.post('/loginForm').send({'username':'test', 'password':'test'})
    	.end((err, res)=>{
    		agent.post("/deleteUser").send({
    			'username': 'testoak'
    		})
    			.end((err2, res2)=>{
-   				res2.should.have.status(200);
+   				res2.should.have.status(302);
    				done();
    			})
    	})
