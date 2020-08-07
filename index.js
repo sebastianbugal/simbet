@@ -178,14 +178,6 @@ app.all( "/admin", ( req, res ) => {
 				data["reports"] =  result.rows;
 				res.render( "pages/adminDashboard", data );
 			} );
-			/*
-      const query2 = `SELECT * FROM Users`;
-      db.query(query2, (error, result) => {
-        if(error){res.send(error); return;}
-        data['users'] =  result.rows;
-        console.log(result.rows);
-      });
-      */
 		}
 		else {
 			res.send( "Access Denied" );
@@ -203,7 +195,6 @@ app.get( "/chat",( req,res )=>{
 		res.redirect( "login" );
 	}
 } );
-// catalog
 // Catalog will now only show posts where the user is within the accessible forum
 var refresh_catalog = ( req, res ) => {
 	if( req.session.loggedin ){

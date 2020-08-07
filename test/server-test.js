@@ -239,9 +239,102 @@ describe('ban system', (done)=>{
    			})
    	})
    })
-	
 });
 
+describe('report system', (done)=>{
+	let agent = request.agent(server);
+   // load reports in admin view
+  	it('load report table for /admin', (done)=>{
+   	agent.post('/loginForm').send({'username':'test', 'password':'test'})
+   	.end((err, res)=>{
+   		agent.post("/admin").send({})
+   			.end((err2, res2)=>{
+   				res2.should.have.status(200);
+   				done();
+   			})
+   	})
+   })
+
+	// adding a report
+	it('send-report to database', (done)=>{
+   	agent.post('/loginForm').send({'username':'test', 'password':'test'})
+   	.end((err, res)=>{
+   		agent.post("/send-report").send({
+   			"rPostId": 0,
+   			"rRule": "testrule",
+   			"id": 0,
+   			"username": "testuser"
+   		})
+   		.end((err2, res2)=>{
+   			res2.should.have.status(200);
+   			done();
+   		})
+   	})
+   })
+
+	// removing a report
+	it('removing a report from the database', (done)=>{
+   	agent.post('/loginForm').send({'username':'test', 'password':'test'})
+   	.end((err, res)=>{
+   		agent.post("/deleteReport").send({
+   			'id':-1
+   		})
+   			.end((err2, res2)=>{
+   				res2.should.have.status(302);
+   				done();
+   			})
+   	})
+   })
+});
+
+describe('misc admin functions', (done)=>{
+	let agent = request.agent(server);
+	// delete post
+	it('removing a report from the database', (done)=>{
+   	agent.post('/loginForm').send({'username':'test', 'password':'test'})
+   	.end((err, res)=>{
+   		agent.post("/deleteReport").send({
+   			'pid':-1
+   		})
+   			.end((err2, res2)=>{
+   				res2.should.have.status(200);
+   				done();
+   			})
+   	})
+   })
+	// nuke user
+	it('removing a report from the database', (done)=>{
+   	agent.post('/loginForm').send({'username':'test', 'password':'test'})
+   	.end((err, res)=>{
+   		agent.post("/deleteUser").send({
+   			'username': 'testoak'
+   		})
+   			.end((err2, res2)=>{
+   				res2.should.have.status(200);
+   				done();
+   			})
+   	})
+   })
+
+});
+
+describe('make a non-thread post', (done)=>{
+	let agent = request.agent(server);
+	// make post
+	it('making a non-thread post that may include replies', (done)=>{
+   	agent.post('/loginForm').send({'username':'test', 'password':'test'})
+   	.end((err, res)=>{
+   		agent.post("/add-post").send({
+   			'pThreadId':-1,
+   			'pText': "testpTextforThread"
+   		})
+   			.end((err2, res2)=>{
+   				res2.should.have.status(200);
+   				done();
+   			})
+   	})
+   })
+});
 
 
 describe("Testing following and blocking", function(){
@@ -381,4 +474,3 @@ describe('Twitter API Call Tests', function() {
     });
 
 });
->>>>>>> 912daac85c2bad911113fd920b6c288f7519de58

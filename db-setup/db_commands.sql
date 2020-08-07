@@ -82,8 +82,8 @@ CREATE TABLE Posts(
 CREATE TABLE Reports(
 	r_report_id SERIAL PRIMARY KEY,
 	r_rule VARCHAR(18),
-	r_post_id INT REFERENCES Posts(p_post_id),
-	r_username VARCHAR(18) REFERENCES Users(username)
+	r_post_id INT,
+	r_username VARCHAR(18)
 );
 
 -- table for holding replies relationship between posts
