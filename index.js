@@ -6,7 +6,7 @@ const ses = require( "express-session" );
 var cors= require('cors')
 // const http=require('http').Server(express);
 const { Chess } = require( "./public/js/chess.js" );
-const PORT = process.env.PORT || 1500;
+const PORT = process.env.PORT || 1200;
 const { Pool } = require( "pg" );
 var rooms=[];
 const glicko=require( "glicko2" );
@@ -20,6 +20,7 @@ var ranking = new glicko.Glicko2( settings );
 const db = new Pool( {
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
   connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
+
 } );
 const fetch = require( "node-fetch" );
 
@@ -57,6 +58,7 @@ io.use( function ( socket, next ) {
 // const sharedsession = require("express-socket.io-session");
 app.use( express.json() );
 app.use( express.urlencoded( { extended:false } ) );
+app.use("/", cors());
 app.use( express.static( path.join( __dirname, "public" ) ) );
 app.use( function ( req, res, next ) {
 	res.locals.session = req.session;   // session available in ejs
@@ -387,7 +389,7 @@ app.post( "/create_forum", ( req,res )=> {
 	var owner = req.session.username;
 	db.query( `SELECT f_name from forums WHERE f_name = '${forumName}'`, ( err, result ) => {
 		if ( result.rowCount > 0 ) {
-			return res.send( `Forum name already taken, contact forum owner '${owner}' to be allowed access.` );
+			return res.send( `Forum name '${forumName}' already taken, contact forum owner '${owner}' to be allowed access.` );
 		} else {
 			const query = `INSERT INTO Forums(f_name, f_password, f_owner) VALUES ('${forumName}', '${forumPassword}', '${owner}')`;
 			db.query( query, ( err, result ) => {
@@ -610,7 +612,7 @@ app.post( "/loginForm", ( req, res ) => {
           req.session.role = result.rows[0]["role"];
           var results = { "username": req.session.username };
           console.log( results );
-          res.redirect( "userView" );
+          res.redirect("userView");
         } else {
           return res.render( "pages/loginFailed" );
         }
@@ -804,7 +806,7 @@ app.all("/admin/bans", (req, res)=>{
       res.render("pages/bans.ejs", {'bans': result.rows});
     });
   } else{
-    res.redirect( "/" ); 
+    res.redirect( "/" );
     return;
   }
 });
@@ -920,14 +922,14 @@ io.on( "connection", socket=>{
 
 		console.log( "sending user" );
 		io.to( data ).emit( "user_name",user_names );
-    
+
 	} );
 	socket.on( "join_room",data=>{
 		// if( NumClients( data )<2 ){
 		var cur;
 		rooms.forEach( ( r )=>{
 			if( r.room==data && r.clientnum<2 ){
-				cur=r;
+
 				if( r.white_socket==null ){
 					r.white_socket=socket.id;
 				}
@@ -937,15 +939,20 @@ io.on( "connection", socket=>{
 				wid=r.white_socket;
 				bid=r.black_socket;
 				r.black_user=req.session.username;
-				r.clientnum++;
 				r.running=true;
+				r.chess.reset()
 			}
+			r.clientnum++;
+			cur=r;
 
 		} );
-
+		if(cur.clientnum>2){
+			socket.emit('room_full')
+		}
 		socket.join( data );
 		console.log( "user",socket.id,"joined" );
 		console.log( wid,bid );
+
 		// if( wid==socket.id ){
 		// 	console.log( "wid is: ",wid,"id gotten: ",socket.id );
 		// 	// side='white';
@@ -966,6 +973,7 @@ io.on( "connection", socket=>{
 		console.log( "sending user" );
 		io.in( data ).emit( "user_name",user_names );
 		console.log( data );
+		io.in(data).emit('fen',cur.chess.fen())
 	} );
 	socket.on( "start",function(){
 		console.log( "working" );
@@ -976,7 +984,7 @@ io.on( "connection", socket=>{
 
 		if( chess.game_over() ){
 			socket.to( "chess_room" ).emit( "game_over",true );
-			
+
 		}
 
 		if( ( chess.turn()==="w"&& data.search( /^b/ ) !== -1 && wid==socket.id ) ){
@@ -1012,7 +1020,7 @@ io.on( "connection", socket=>{
 		console.log( "expected w:",wid, "expected bid:" ,bid );
 
 		var moveColor = "white";
-		
+
 		if ( chess.turn() === "b" && socket.id==bid ){
 			console.log( "makes move:",bid );
 			moveColor = "black";
@@ -1033,7 +1041,7 @@ io.on( "connection", socket=>{
 		var status;
 		// checkmate?
 		console.log( cur );
-		
+
 
 		if ( chess.in_checkmate() ) {
 			status = "Game over, " + moveColor + " is in checkmate.";
@@ -1083,7 +1091,7 @@ io.on( "connection", socket=>{
 
 					console.log( match );
 					ranking.updateRatings( match );
-					
+
 					var query_w = `UPDATE users SET chess_elo=${white_player.getRating()}, rd=${white_player.getRd()}, vol=${white_player.getVol()}, losses=losses+1 WHERE username='${cur.white_user}'`;
 					db.query( query_w, ( err, result ) => {console.log( err,result );} );
 					var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, wins=wins+1 WHERE username='${cur.black_user}'`;
@@ -1175,7 +1183,7 @@ io.on( "connection", socket=>{
 	socket.on( "disconnect",( reason ) =>{
 
 		console.log( reason );
-		var cur=null; 
+		var cur=null;
 		var white_player;
 		var black_player;
 		var match=[];
@@ -1267,7 +1275,7 @@ io.on( "connection", socket=>{
 				db.query( query_w, ( err, result ) => {console.log( err,result );} );
 				var query_b = `UPDATE users SET chess_elo=${black_player.getRating()}, rd=${black_player.getRd()}, vol=${black_player.getVol()}, wins=wins+1 WHERE username='${cur.black_user}'`;
 				db.query( query_b, ( err, result ) => {console.log( err,result );} );
-				
+
 			} );
 
 		}
@@ -1301,14 +1309,23 @@ app.get( "/rooms", ( req,res )=>{
 	}
 } );
 app.post( "/create_room" , ( req,res )=>{
-	res.redirect( "/chess"+req.session.username );
+	var room=req.session.username;
+	// us=[]
+	// ob = {'room':room}
+	// us.push(ob)
+	// res.json(us)
+	res.redirect( "/chess"+room );
+
+
+
 } );
+
 app.post( "/join_room" , ( req,res )=>{
 	var a =req.body.room;
 	console.log( a );
 	res.redirect( "/chess"+req.body.room );
-
 } );
+
 app.get( "/games",( req,res )=>{
 	if( req.session.loggedin ){
 		res.render( "pages/games" );}
@@ -1356,4 +1373,4 @@ app.get( "/logout",function( req,res ){
 } );
 server.listen( PORT, () => console.log( `Listening on ${ PORT }` ) );
 // app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
-module.exports = app;
+module.exports = server;
