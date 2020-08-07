@@ -83,14 +83,14 @@ app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more t
 		t_client.get( "https://api.twitter.com/1.1/search/tweets.json", { q: "#SplatForum", result_type: 'recent'}, function( error, tweets, response ) {
       if( error ) throw error;
       var tweets = { "statuses":tweets.statuses };
-      console.log(tweets);
+      // console.log(tweets);
 			var query = "SELECT * FROM users ORDER BY chess_elo DESC";
 			db.query( query, ( err, result ) => {
 				if( err ){
 					res.send( error );
         }
         var data = { "rows":result.rows, tweets };
-				res.render( "pages/leaderBoards", data );
+        res.render( "pages/leaderBoards", data );
 			} );
 		} );
 	} else {
@@ -452,12 +452,31 @@ app.post( "/add-thread", bodyParser.urlencoded( { extended:false } ), ( req, res
 	let pText = req.body.pText;
 	if( !pText )
 		res.send( "empty post" );
+  //get ip
+  let ipApiData = {};
+  ipApiData["countryCode"] = "AX";
+  let ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  if ( ip.substr( 0, 7 ) == "::ffff:" ) {
+    ip = ip.substr( 7 );
+  }
+  console.log( "ip: " + ip );
+  const ipApiUrl = `http://ip-api.com/json/${ip}?fields=countryCode`;
+  fetch( ipApiUrl )
+    .then( ( res ) => res.json() )
+    .then( ( json ) => {
+      if( json["countryCode"] )
+        ipApiData["countryCode"] = json["countryCode"];
+      console.log( "fetched countryCode= " + json["countryCode"] );
+      console.log( ipApiUrl );
+    } );
+  console.log( "countryCode: " + ipApiData["countryCode"] );
+
 
 	db.query( `SELECT * FROM Users WHERE username = '${pUsername}' AND ('${tForum}' = any(accessible))`, ( error, result ) => {
 		if( error ){ res.send( error ); return; }
 		//Checks to see if the User can access the forum they are posting to.
 		if( result.rowCount > 0 ) {
-			const query = `SELECT "post_thread"('${tSubject}', '${tForum}', '${pUsername}', '${pText}') AS id`;
+			const query = `SELECT "post_thread"('${tSubject}', '${tForum}', '${pUsername}', '${pText}', '${ipApiData["countryCode"]}') AS id`;
 			db.query( query, ( error, result ) => {
 				if( error ){ res.send( error ); return; }
 				res.redirect( "/thread/" + result.rows[0].id );
@@ -827,15 +846,6 @@ app.post("/banUser", bodyParser.urlencoded({ extended: false }), (req, res)=>{
   db.query(`INSERT INTO bans(b_username, b_end, b_rule, b_post_id) VALUES('${username}', CURRENT_DATE + INTERVAL '24 hour' * ${days}, '${rule}', ${post_id})`, (error, result)=>{
       if(error){res.send(error); return;}
       res.redirect("admin");
-  });
-});
-
-app.all("/banwall", (req, res)=>{
-  var username = req.session.username;
-  if(!username){res.redirect('/'); return;};
-  db.query(`SELECT * FROM bans WHERE b_username = '${username}' AND CURRENT_TIMESTAMP < b_end ORDER BY b_end DESC`, (error, result) => {
-    if(error){res.send(error); return;}
-    res.render("pages/banwall.ejs", {'row': result.rows});
   });
 });
 
