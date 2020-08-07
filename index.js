@@ -144,7 +144,7 @@ app.get("/tweetAuthed", (req, res) => {
 					res.send( error );
         }
         var data = result.rows[0];
-        var t_status = `Username:${data.username}, Wins:${data.wins}, Ties:${data.ties}, Losses:${data.losses}, Elo:${data.chess_elo} #SplatForum`;
+        var t_status = `Username:${data.username}, Wins:${data.wins}, Ties:${data.ties}, Losses:${data.losses}, Elo:${data.chess_elo}   #SplatForum`;
         t_client_u.post('statuses/update', {status: t_status}, function(error, tweet, response) {
           if (error) {
             console.log(error);
@@ -910,6 +910,11 @@ io.on( "connection", socket=>{
 		username_b=null;
 	} );
 	socket.on( "create_join_room",data=>{
+		console.log(req.session.loggedin)
+		if(req.session.loggedin!=true){
+			socket.emit('room_full')
+		}
+		else{
 		var a = new Chess();
 		wid=socket.id;
 		var username_w=req.session.username;
@@ -923,10 +928,13 @@ io.on( "connection", socket=>{
 
 		console.log( "sending user" );
 		io.to( data ).emit( "user_name",user_names );
-
+		}
 	} );
 	socket.on( "join_room",data=>{
-		// if( NumClients( data )<2 ){
+		if(req.session.loggedin!=true){
+			socket.emit('room_full')
+		}
+		else{
 		var cur;
 		rooms.forEach( ( r )=>{
 			if( r.room==data && r.clientnum<2 ){
@@ -953,17 +961,6 @@ io.on( "connection", socket=>{
 		socket.join( data );
 		console.log( "user",socket.id,"joined" );
 		console.log( wid,bid );
-
-		// if( wid==socket.id ){
-		// 	console.log( "wid is: ",wid,"id gotten: ",socket.id );
-		// 	// side='white';
-		// 	username_w=req.session.username;
-		// }
-		// else if( bid==socket.id ){
-		// 	console.log( "bdi is: ",bid,"id gotten: ",socket.id );
-		// 	// side='black'
-		// 	username_b=req.session.username;
-		// }
 		var user_names=[ cur.white_user,cur.black_user ];
 		var query = `SELECT username, chess_elo, rd, vol FROM users WHERE username='${user_names[0]}' OR username='${user_names[1]}'`;
 		db.query( query, ( err, result ) => {
@@ -975,6 +972,7 @@ io.on( "connection", socket=>{
 		io.in( data ).emit( "user_name",user_names );
 		console.log( data );
 		io.in(data).emit('fen',cur.chess.fen())
+	}
 	} );
 	socket.on( "start",function(){
 		console.log( "working" );
@@ -1016,6 +1014,7 @@ io.on( "connection", socket=>{
 				chess=r.chess;
 			}
 		} );
+		if(cur!=null){
 		bid=cur.black_socket;
 		wid=cur.white_socket;
 		console.log( "expected w:",wid, "expected bid:" ,bid );
@@ -1179,6 +1178,8 @@ io.on( "connection", socket=>{
 		}
 		io.in( data[0] ).emit( "fen",chess.fen() );
 		console.log( status );
+	}
+
 	} );
 
 	socket.on( "disconnect",( reason ) =>{
@@ -1310,21 +1311,25 @@ app.get( "/rooms", ( req,res )=>{
 	}
 } );
 app.post( "/create_room" , ( req,res )=>{
-	var room=req.session.username;
-	// us=[]
-	// ob = {'room':room}
-	// us.push(ob)
-	// res.json(us)
-	res.redirect( "/chess"+room );
-
-
+	if(req.session.loggedin){
+		var room=req.session.username;
+		res.redirect( "/chess"+room );
+	}
+	else{
+		res.redirect( "login" );
+	}
 
 } );
 
 app.post( "/join_room" , ( req,res )=>{
-	var a =req.body.room;
-	console.log( a );
-	res.redirect( "/chess"+req.body.room );
+	if(req.session.loggedin){
+		var a =req.body.room;
+		console.log( a );
+		res.redirect( "/chess"+req.body.room );
+	}
+	else{
+		res.redirect( "login" );
+	}
 } );
 
 app.get( "/games",( req,res )=>{

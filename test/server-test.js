@@ -141,6 +141,18 @@ describe("Various tests on the creating and accessing of forums", function(){
       })
   })
 
+  it("Should make a new thread and redirect to the new thread", function(done){
+    agent.post("/loginForm").send({'username':'admin', 'password':'root'})
+      .end(function(err,res){
+        agent.post("/add-thread").send({"tSubject":'1', "tForum":'main', "pUsername":'admin', "pText":"1"})
+          .end(function(err2,res2){
+            res2.should.have.status(200);
+            res2.should.be.html;
+            done();
+          })
+      })
+  })
+
   it("Should not acces a forum because password is wrong", function(done){
     agent.post("/loginForm").send({'username':'test', 'password':'test', 'forumName':'thisisATest' + random, 'forumPassword': 'testingPass22'})
       .end(function(err,res){
@@ -474,3 +486,4 @@ describe('Twitter API Call Tests', function() {
     });
 
 });
+
