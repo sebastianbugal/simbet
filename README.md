@@ -5,4 +5,10 @@ Libraries used:
 Chessboard.js
 chess.js
 glicko2
-twitter
+
+API's useds
+Twitter
+Captcha2
+ip-api.com
+countryflags.io
+
