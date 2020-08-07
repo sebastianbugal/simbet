@@ -19,7 +19,12 @@ var settings = {
 var ranking = new glicko.Glicko2( settings );
 const db = new Pool( {
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-  connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
+  //connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
+	user: 'postgres',
+  host: 'localhost',
+  database: 'postgres',
+  password: 'power',
+  port: 5432,
 } );
 const fetch = require( "node-fetch" );
 
@@ -388,7 +393,7 @@ app.post( "/create_forum", ( req,res )=> {
 	var owner = req.session.username;
 	db.query( `SELECT f_name from forums WHERE f_name = '${forumName}'`, ( err, result ) => {
 		if ( result.rowCount > 0 ) {
-			return res.send( `Forum name already taken, contact forum owner '${owner}' to be allowed access.` );
+			return res.send( `Forum name '${forumName}' already taken, contact forum owner '${owner}' to be allowed access.` );
 		} else {
 			const query = `INSERT INTO Forums(f_name, f_password, f_owner) VALUES ('${forumName}', '${forumPassword}', '${owner}')`;
 			db.query( query, ( err, result ) => {
@@ -928,7 +933,7 @@ io.on( "connection", socket=>{
 		var cur;
 		rooms.forEach( ( r )=>{
 			if( r.room==data && r.clientnum<2 ){
-				
+
 				if( r.white_socket==null ){
 					r.white_socket=socket.id;
 				}
@@ -951,7 +956,7 @@ io.on( "connection", socket=>{
 		socket.join( data );
 		console.log( "user",socket.id,"joined" );
 		console.log( wid,bid );
-		
+
 		// if( wid==socket.id ){
 		// 	console.log( "wid is: ",wid,"id gotten: ",socket.id );
 		// 	// side='white';
@@ -1314,8 +1319,8 @@ app.post( "/create_room" , ( req,res )=>{
 	// us.push(ob)
 	// res.json(us)
 	res.redirect( "/chess"+room );
-	
-	
+
+
 
 } );
 app.post( "/join_room" , ( req,res )=>{
