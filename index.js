@@ -19,12 +19,8 @@ var settings = {
 var ranking = new glicko.Glicko2( settings );
 const db = new Pool( {
 	//connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432'
-  //connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
-	user: 'postgres',
-  host: 'localhost',
-  database: 'postgres',
-  password: 'power',
-  port: 5432,
+  connectionString: process.env.DATABASE_URL||"postgres://postgres:root@localhost"
+
 } );
 const fetch = require( "node-fetch" );
 
@@ -87,14 +83,14 @@ app.get( "/leaderBoards", ( req, res ) => {   // will get rate limited if more t
 		t_client.get( "https://api.twitter.com/1.1/search/tweets.json", { q: "#SplatForum", result_type: 'recent'}, function( error, tweets, response ) {
       if( error ) throw error;
       var tweets = { "statuses":tweets.statuses };
-      console.log(tweets);
+      // console.log(tweets);
 			var query = "SELECT * FROM users ORDER BY chess_elo DESC";
 			db.query( query, ( err, result ) => {
 				if( err ){
 					res.send( error );
         }
         var data = { "rows":result.rows, tweets };
-				res.render( "pages/leaderBoards", data );
+        res.render( "pages/leaderBoards", data );
 			} );
 		} );
 	} else {
@@ -1333,12 +1329,13 @@ app.post( "/create_room" , ( req,res )=>{
 
 
 } );
+
 app.post( "/join_room" , ( req,res )=>{
 	var a =req.body.room;
 	console.log( a );
 	res.redirect( "/chess"+req.body.room );
-
 } );
+
 app.get( "/games",( req,res )=>{
 	if( req.session.loggedin ){
 		res.render( "pages/games" );}
@@ -1386,4 +1383,4 @@ app.get( "/logout",function( req,res ){
 } );
 server.listen( PORT, () => console.log( `Listening on ${ PORT }` ) );
 // app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
-module.exports = app;
+module.exports = server;
